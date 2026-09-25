@@ -1,0 +1,109 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--glow) fixed, var(--ground);
+  color: var(--ink);
+  font-family: var(--font);
+  font-variation-settings: "opsz" 32;
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+}
+
+h1, h2, h3, h4, p, figure, ul, ol, dl, dd {
+  margin: 0;
+}
+
+ul, ol {
+  padding: 0;
+  list-style: none;
+}
+
+h1, h2, h3 {
+  font-weight: 400;
+  text-wrap: balance;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button, input, textarea, select {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+::selection {
+  background: var(--magenta);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Type scale (Makro presets, tuned for phones) */
+.t-h1 { font-size: 32px; line-height: 1.25; letter-spacing: -0.03em; }
+.t-h2 { font-size: 28px; line-height: 1.3; letter-spacing: -0.03em; }
+.t-h3 { font-size: 20px; line-height: 1.4; letter-spacing: -0.02em; font-weight: 500; }
+.t-title { font-size: 16px; line-height: 1.45; letter-spacing: -0.01em; font-weight: 500; }
+.t-body { font-size: 14px; line-height: 1.5; }
+.t-lead { font-size: 16px; line-height: 1.5; color: var(--ink-75); }
+.t-cap { font-size: 12px; line-height: 1.5; letter-spacing: 0; }
+.t-num { font-size: 36px; line-height: 1.25; letter-spacing: -0.03em; font-weight: 500; font-variant-numeric: tabular-nums; }
+.t-mono { font-family: var(--mono); letter-spacing: 0; }
+.muted { color: var(--ink-75); }
+.subtle { color: var(--ink-62); }
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* In off mode (no JS, or ?motion=off), freeze CSS keyframe animations and transitions.
+   Calm mode keeps fades and ambient loops running — that's the whole point. */
+[data-motion="off"] *,
+[data-motion="off"] *::before,
+[data-motion="off"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Calm: photos fade in without the slight zoom (fades stay; zooms go). */
+[data-motion="calm"] .photo img,
+[data-motion="off"] .photo img { transform: none; }

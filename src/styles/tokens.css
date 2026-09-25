@@ -1,0 +1,83 @@
+/*
+ * Design tokens: the house layout system (docs/design-reference.md) in Royal Hair colours.
+ * The pinks are sampled from the logo itself (brand/logo-original.png): the glossy fill #fc5aa3 and
+ * the deep outline, so the site and the sign match. The ground is a warm champagne rather than the
+ * cool grey of the reference. The pastel slots keep their
+ * structural roles but carry salon tones (gold = the spa, sage = treatments, blush = nails).
+ * Light-only by design.
+ */
+:root {
+  color-scheme: light;
+
+  --ground: #f4efe9;
+  --surface: #ffffff;
+  --ink: #1c1719;
+  --ink-75: rgba(28, 23, 25, 0.75);
+  --ink-50: rgba(28, 23, 25, 0.5);
+  /* The lightest ink allowed for text: 4.6:1 on the cream ground and 5:1 on white (WCAG AA). */
+  --ink-62: rgba(28, 23, 25, 0.62);
+  --ink-25: rgba(28, 23, 25, 0.25);
+  --ink-12: rgba(28, 23, 25, 0.12);
+  --ink-06: rgba(28, 23, 25, 0.06);
+  --charcoal: #2a2326;
+  --graphite: #4a3f44;
+  --white-75: rgba(255, 255, 255, 0.75);
+  --white-50: rgba(255, 255, 255, 0.5);
+  --glass: rgba(255, 255, 255, 0.8);
+
+  /* The logo's fill: takes ink text (6:1), never white text (2.9:1). */
+  --magenta: #fc5aa3;
+  --magenta-wash: #ffe6f1;
+  /* The logo's outline, darkened a touch: takes white text (5.4:1) for solid buttons and badges. */
+  --magenta-deep: #d10d58;
+  --plum: #7b3f6b;
+  --gold: #c9a227;
+  --gold-wash: #f9efd2;
+  --blush: #f7dfe4;
+  --sage: #b7c9b4;
+  --mist: #e2d9da;
+  --champagne: #ead9c4;
+
+  /* Semantic, used only for state. */
+  /* 4.8:1 on the cream ground, so "Open now" passes AA at 12px. */
+  --open: #23784a;
+  --danger: #c33a2e;
+  --danger-wash: #fbe6e3;
+  --warning-ink: #8a5b1f;
+
+  --font: "Inter", "Inter Display", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: "Fragment Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+
+  /* Radius scale: crisper cards and image frames than the reference (4/8/10/12/16/20/24/40).
+     Pills stay fully round. */
+  --r-4: 3px;
+  --r-8: 5px;
+  --r-10: 6px;
+  --r-12: 7px;
+  --r-16: 8px;
+  --r-20: 10px;
+  --r-24: 12px;
+  --r-40: 14px;
+  --r-pill: 500px;
+  --r-img: 8px;
+
+  --sh-soft: 0 0.6px 0.6px -1.25px rgba(0, 0, 0, 0.09), 0 2.29px 2.29px -2.5px rgba(0, 0, 0, 0.08), 0 10px 10px -3.75px rgba(0, 0, 0, 0.03);
+  --sh-float: 0 0.64px 1.15px -0.81px rgba(90, 52, 70, 0.11), 0 1.93px 3.48px -1.63px rgba(90, 52, 70, 0.11), 0 5.1px 9.19px -2.44px rgba(90, 52, 70, 0.1), 0 16px 28.8px -3.25px rgba(90, 52, 70, 0.06);
+  --sh-deep: 0 0.81px 0.81px -0.47px rgba(48, 34, 41, 0.19), 0 1.91px 1.91px -0.94px rgba(48, 34, 41, 0.18), 0 3.49px 3.49px -1.41px rgba(48, 34, 41, 0.18), 0 5.79px 5.79px -1.88px rgba(48, 34, 41, 0.17), 0 9.36px 9.36px -2.34px rgba(48, 34, 41, 0.16), 0 15.32px 15.32px -2.81px rgba(48, 34, 41, 0.15), 0 26.38px 26.38px -3.28px rgba(48, 34, 41, 0.12), 0 48px 48px -3.75px rgba(48, 34, 41, 0.06);
+  --sh-chip: 0 4px 8px rgba(0, 0, 0, 0.25);
+
+  --glow: radial-gradient(134% 100% at 50% 0%, #ffffff 0%, #f4efe9 100%);
+  --fade: linear-gradient(#ffffff 0%, #f4efe9 100%);
+
+  --z-sticky: 10;
+  --z-tabbar: 20;
+  --z-sheet: 40;
+  --z-toast: 50;
+  --z-overlay: 60;
+
+  --app-w: 480px;
+  /* Never less than the notch: in landscape iPhones report a side inset (viewport-fit=cover). */
+  --gutter: max(16px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
+  --nav-h: 0px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}

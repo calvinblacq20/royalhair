@@ -1,0 +1,378 @@
+/*
+ * Responsive layer. Phones (< 810px) use the app layout from the Fresha
+ * reference; tablet and desktop switch to Makro's floating top nav, wider
+ * containers and sticky side cards (Makro breakpoints: 810 / 1024 / 1200).
+ */
+
+@media (max-width: 809.98px) {
+  .desktop-only { display: none !important; }
+}
+@media (min-width: 810px) {
+  .mobile-only { display: none !important; }
+}
+@media (max-width: 1023.98px) {
+  .desk { display: none !important; }
+}
+@media (min-width: 1024px) {
+  .lt-desk { display: none !important; }
+}
+
+/* ========== Tablet and up ========== */
+@media (min-width: 810px) {
+  :root {
+    --gutter: max(32px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
+    --nav-h: 80px;
+  }
+
+  /* Flat ground so sticky rows (filters, section tabs) blend in without a visible band. */
+  body { background: var(--ground); }
+
+  .app {
+    max-width: none;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .screen {
+    width: 100%;
+    max-width: calc(1200px + var(--gutter) * 2);
+    margin-inline: auto;
+    padding-block: 0 56px;
+  }
+  .screen.is-narrow { max-width: calc(880px + var(--gutter) * 2); }
+  .screen.is-doc { max-width: calc(640px + var(--gutter) * 2); }
+
+  .page-title { padding-block: 24px 20px; }
+  .t-h1 { font-size: 40px; letter-spacing: -0.035em; }
+
+  /* Horizontal scrollers stay inside the column instead of bleeding to the edge */
+  .chips,
+  .date-strip,
+  .hscroll {
+    margin-inline: 0;
+    padding-inline: 2px;
+  }
+
+  /* ---- Floating top nav (Makro) ---- */
+  .desk-nav-wrap {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-tabbar);
+    padding: 12px var(--gutter);
+  }
+  .desk-nav {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    max-width: 1200px;
+    height: 56px;
+    margin-inline: auto;
+    padding: 0 8px 0 10px;
+    border-radius: var(--r-24);
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    box-shadow: var(--sh-float);
+  }
+  .desk-brand { display: inline-flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 500; }
+  .desk-links {
+    position: absolute;
+    left: 50%;
+    display: flex;
+    gap: 4px;
+    transform: translateX(-50%);
+  }
+  .desk-link {
+    position: relative;
+    isolation: isolate;
+    padding: 8px 16px;
+    border-radius: var(--r-pill);
+    font-size: 14px;
+    color: var(--ink-75);
+    transition: color 0.2s;
+  }
+  .desk-link:hover { color: var(--ink); }
+  .desk-link.is-active { color: var(--ink); font-weight: 500; }
+  .desk-link-hl { position: absolute; inset: 0; z-index: -1; border-radius: var(--r-pill); background: var(--ground); }
+  .nav-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: 40px;
+    padding: 4px 16px 4px 4px;
+    border-radius: var(--r-12);
+    background: var(--surface);
+    box-shadow: var(--sh-soft);
+    font-size: 14px;
+    transition: background-color 0.2s;
+  }
+  .nav-cta .sq {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--r-10);
+    background: var(--ground);
+    transition: background-color 0.2s, transform 0.3s;
+  }
+  .nav-cta:hover .sq { background: var(--magenta); transform: translateX(2px); }
+  .desk-avatar {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--magenta);
+    font-weight: 600;
+  }
+  .desk-avatar.is-active { background: var(--magenta); color: var(--ink); }
+
+  /* ---- Footer with giant wordmark (Makro) ---- */
+  .desk-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 0;
+    overflow: hidden;
+    padding: 64px var(--gutter) 0;
+  }
+  .desk-footer-inner {
+    display: grid;
+    grid-template-columns: 1.4fr repeat(3, 1fr);
+    gap: 32px;
+    max-width: 1200px;
+    margin-inline: auto;
+  }
+  .desk-footer-col { display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+  .desk-footer-col a { color: var(--ink-75); transition: color 0.2s; }
+  .desk-footer-col a:hover { color: var(--ink); }
+  .desk-wordmark {
+    max-width: 1200px;
+    margin: 40px auto -0.18em;
+    font-size: clamp(88px, 13.5vw, 196px);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.07em;
+    white-space: nowrap;
+    color: var(--ink);
+  }
+  .desk-copy {
+    position: absolute;
+    left: 50%;
+    bottom: 18px;
+    transform: translateX(-50%);
+    padding: 6px 14px;
+    border-radius: var(--r-pill);
+    background: var(--ink);
+    color: var(--white-75);
+    white-space: nowrap;
+  }
+
+  /* ---- Top bar becomes a plain back row under the nav ---- */
+  .topbar.is-backrow {
+    position: static;
+    min-height: 0;
+    margin-inline: 0;
+    padding: 4px 0 8px;
+    background: none !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .topbar.is-backrow .topbar-title { display: none; }
+  .topbar.is-backrow .topbar-back {
+    width: auto;
+    padding-inline: 8px 14px;
+    gap: 6px;
+    display: inline-flex;
+    height: 36px;
+    border-radius: var(--r-pill);
+    color: var(--ink-75);
+  }
+  .topbar.is-backrow .topbar-back:hover { background: var(--surface); color: var(--ink); }
+  .topbar-backlabel { font-size: 14px; }
+
+  /* ---- Bottom sheets become centred dialogs ---- */
+  .sheet-root.is-modal { align-items: center; padding: 24px; }
+  .sheet.is-modal {
+    width: min(100%, 520px);
+    max-height: min(86dvh, 760px);
+    border-radius: var(--r-24);
+    padding: 20px 24px 24px;
+    box-shadow: var(--sh-deep);
+  }
+  .sheet.is-modal .sheet-grab { display: none; }
+  .sheet.is-modal .sheet-title { margin-top: 6px; }
+
+  /* ---- Notifications slide in top-right ---- */
+  .toast-layer {
+    left: auto;
+    right: 16px;
+    top: 12px;
+    width: 380px;
+    transform: none;
+  }
+
+  /* ---- Studio page ---- */
+  .desk-gallery {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 8px;
+    height: clamp(420px, 50vw, 620px);
+    margin-top: 4px;
+    overflow: hidden;
+    border-radius: var(--r-24);
+  }
+  .desk-gallery > :first-child { grid-row: 1 / span 2; }
+  .desk-gallery .photo { height: 100% !important; border-radius: 0 !important; }
+  .desk-gallery-count {
+    position: absolute;
+    right: 16px;
+    bottom: 16px;
+    padding: 6px 14px;
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    box-shadow: var(--sh-soft);
+    font-size: 13px;
+  }
+
+  .intro {
+    margin: 28px 0 0;
+    padding: 0;
+    border-radius: 0;
+    background: none;
+  }
+  .intro h1 { font-size: 44px; letter-spacing: -0.04em; }
+  .intro .address-chip { align-self: flex-start; padding-right: 18px; }
+
+  .studio-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0 48px;
+    align-items: start;
+  }
+  .desk-section-tabs {
+    position: sticky;
+    top: var(--nav-h);
+    z-index: 9;
+    margin-top: 24px;
+    padding-inline: 0;
+    background: var(--ground);
+    box-shadow: 0 1px 0 var(--ink-06);
+  }
+  .anchor { scroll-margin-top: calc(var(--nav-h) + 64px); }
+
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    overflow: visible;
+  }
+  .steps .step-card { width: auto; }
+  .styles-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 8px; padding: 8px; }
+  .review-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .desk-2col {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 24px;
+    align-items: start;
+  }
+  .desk-2col > .section:first-child,
+  .desk-2col > .section { margin-top: 28px; }
+
+  .floating-bar { bottom: 16px; }
+
+  /* ---- Explore ---- */
+  .style-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px 16px; }
+  .explore-bar { top: var(--nav-h) !important; }
+  .explore-bar .search-box { max-width: 520px; }
+
+  /* ---- Orders / sticky filters under the nav ---- */
+  .sticky-under-nav { top: var(--nav-h) !important; }
+  .orders-sections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 32px; align-items: start; }
+  .order-list-card { background: var(--surface); border-radius: var(--r-16); box-shadow: var(--sh-soft); padding-inline: 16px; }
+
+  /* ---- Profile ---- */
+  .profile-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+
+  /* ---- Order detail ---- */
+  .detail-hero {
+    margin-top: 4px !important;
+    margin-inline: 0;
+    overflow: hidden;
+    border-radius: var(--r-24);
+  }
+  .detail-hero h1 { font-size: 40px; left: 28px; bottom: 28px; }
+  .detail-body {
+    margin: 28px 0 0;
+    padding: 0;
+    border-radius: 0;
+    background: none;
+  }
+
+  /* ---- Measurements ---- */
+  .measure-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+
+  /* ---- Order flow ---- */
+  .flow-screen .topbar { margin-inline: calc(var(--gutter) * -1); }
+  .flow-crumbs {
+    position: absolute;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transform: translateX(-50%);
+    font-size: 14px;
+    white-space: nowrap;
+  }
+  .flow-crumb { padding: 6px 10px; border-radius: var(--r-pill); color: var(--ink-62); }
+  .flow-crumb.is-done { color: var(--ink-75); }
+  .flow-crumb.is-done:hover { background: var(--surface); color: var(--ink); }
+  .flow-crumb.is-current { color: var(--ink); font-weight: 500; background: var(--surface); box-shadow: var(--sh-soft); }
+  .flow-crumb-sep { color: var(--ink-25); }
+  .flow-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 48px; align-items: start; }
+  .flow-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .slot-grid { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)) !important; }
+  .flow-screen .sticky-bar { margin-inline: calc(var(--gutter) * -1); padding-inline: var(--gutter); }
+
+  /* ---- Receipt ---- */
+  .receipt { padding: 32px 36px; font-size: 14px; }
+  .receipt .perforation { margin-inline: -36px; }
+  .receipt-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .stamp { right: 32px; top: 108px; }
+  .receipt-actions { display: grid !important; grid-template-columns: 1fr 1fr; }
+}
+
+/* ========== Desktop (two-column layouts with side cards) ========== */
+@media (min-width: 1024px) {
+  .studio-layout { grid-template-columns: minmax(0, 1fr) 360px; }
+  .studio-aside,
+  .detail-aside,
+  .flow-aside {
+    position: sticky;
+    top: calc(var(--nav-h) + 16px);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .studio-aside { margin-top: 24px; }
+  .flow-aside { top: 84px; margin-top: 8px; }
+  .aside-card { padding: 22px; border-radius: var(--r-24); box-shadow: var(--sh-float); }
+
+  .detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 0 48px; align-items: start; }
+  .detail-aside { margin-top: 28px; }
+
+  .flow-layout { grid-template-columns: minmax(0, 1fr) 380px; }
+
+  .profile-grid { grid-template-columns: 380px minmax(0, 1fr); gap: 32px; align-items: start; }
+  .profile-left { position: sticky; top: calc(var(--nav-h) + 16px); }
+  .profile-right { padding-top: 28px; }
+}
+
+@media (min-width: 1200px) {
+  .style-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .measure-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

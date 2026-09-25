@@ -1,0 +1,232 @@
+/*
+ * Salon admin pieces on top of admin.css: the day board, the diary, the walk-in screen,
+ * staff cards and the hair record. Loaded only with the admin bundle.
+ * Breakpoints match the rest of the system: 810 and 1024.
+ */
+
+/* ---------- Shared ---------- */
+.rh-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 16px;
+  border-radius: var(--r-16);
+  background: var(--surface);
+  box-shadow: var(--sh-soft);
+}
+.rh-search input { flex: 1; min-width: 0; border: 0; background: transparent; font-size: 16px; min-height: 44px; outline: none; }
+.rh-search:focus-within { box-shadow: 0 0 0 2px var(--ink); }
+
+.is-overdue { color: var(--danger); display: inline-flex; align-items: center; gap: 4px; }
+.adm-row.is-inactive, .staff-card.is-inactive { opacity: 0.55; }
+.branch-switch { box-shadow: var(--sh-soft); }
+.clients-tabs { max-width: 360px; }
+.clients-tabs .chip-count { margin-left: 6px; }
+
+/* An allergy on file is the one thing that must never be missed. */
+.allergy-alert {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: var(--r-12);
+  background: var(--danger-wash);
+  color: var(--danger);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.allergy-alert svg { flex: none; margin-top: 2px; }
+.allergy-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-left: 8px;
+  border-radius: 50%;
+  background: var(--danger);
+  vertical-align: middle;
+}
+textarea.has-allergy { color: var(--danger); }
+
+/* ---------- Today ---------- */
+.today-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.stat-card { display: flex; flex-direction: column; gap: 6px; padding: 16px 18px; }
+.stat-card.is-gold { background: var(--gold-wash); }
+/* Scales down on the smallest phones so "GH₵ 1,500" stays on one line. */
+.stat-value { font-size: clamp(18px, 5.6vw, 26px); line-height: 1.15; font-weight: 500; letter-spacing: -0.03em; white-space: nowrap; }
+.today-columns { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
+.use-track { display: block; height: 6px; border-radius: 6px; background: var(--ink-06); overflow: hidden; }
+.use-track i { display: block; height: 100%; border-radius: inherit; background: var(--magenta-deep); }
+.rebook-card { display: block; transition: box-shadow 0.2s ease; }
+.rebook-card:hover { box-shadow: var(--sh-float); }
+
+@media (min-width: 810px) {
+  .today-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (min-width: 1200px) {
+  .today-columns { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* ---------- Diary ---------- */
+.diary-nav { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+/* Scrolls sideways on phones so every column stays readable instead of squashing to slivers. */
+.diary-scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--r-16);
+  background: var(--surface);
+  box-shadow: var(--sh-soft);
+}
+.diary-scroll:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.diary { display: grid; min-width: min-content; }
+.diary-corner,
+.diary-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface);
+  border-bottom: 1px solid var(--ink-06);
+}
+.diary-head { display: flex; flex-direction: column; gap: 2px; padding: 12px 10px; min-width: 0; }
+.diary-corner { left: 0; z-index: 3; }
+.diary-times { position: sticky; left: 0; z-index: 1; background: var(--surface); border-right: 1px solid var(--ink-06); }
+.diary-times span { position: absolute; right: 8px; transform: translateY(-50%); font-size: 11px; color: var(--ink-62); font-variant-numeric: tabular-nums; }
+.diary-times span:first-child { transform: none; }
+.diary-col { position: relative; border-right: 1px solid var(--ink-06); }
+.diary-col:last-child { border-right: 0; }
+.diary-slot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed var(--ink-06);
+  transition: background-color 0.15s;
+}
+.diary-slot:hover:not(:disabled) { background: var(--magenta-wash); }
+.diary-slot:disabled { cursor: default; background: repeating-linear-gradient(135deg, transparent 0 6px, rgba(28, 23, 25, 0.025) 6px 12px); }
+.diary-visit {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 8px;
+  overflow: hidden;
+  text-align: left;
+  border-radius: var(--r-10);
+  border-left: 3px solid var(--ink);
+  background: var(--ground);
+  box-shadow: var(--sh-soft);
+  line-height: 1.25;
+}
+.diary-visit:hover { box-shadow: var(--sh-float); }
+.diary-visit-name { font-size: 13px; font-weight: 500; }
+.diary-visit-meta { font-size: 11px; color: var(--ink-75); }
+.diary-visit.is-magenta { border-left-color: var(--magenta-deep); background: var(--magenta-wash); }
+.diary-visit.is-sage { border-left-color: var(--open); background: #eef4ed; }
+.diary-visit.is-plum { border-left-color: var(--plum); background: #f3e9f0; }
+.diary-visit.is-gold { border-left-color: var(--gold); background: var(--gold-wash); }
+.diary-visit.is-mist { border-left-color: var(--ink-25); opacity: 0.8; }
+.diary-now { position: absolute; left: 0; right: 0; z-index: 2; height: 2px; background: var(--danger); pointer-events: none; }
+.diary-now::before { content: ""; position: absolute; left: -4px; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--danger); }
+
+/* ---------- Walk-in ---------- */
+.walkin { display: flex; flex-direction: column; gap: 16px; }
+.walkin-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.walkin-chips .chip { height: auto; min-height: 40px; padding-block: 6px; box-shadow: none; border: 1px solid var(--ink-12); }
+.walkin-chips .chip.is-active { border-color: var(--ink); }
+.walkin-staff { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.walkin-new { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.walkin-branch { width: auto; max-width: 180px; min-height: 40px; }
+/* The total and the button stay within thumb reach, above the admin tab bar on phones. */
+.walkin-bar {
+  position: sticky;
+  bottom: calc(76px + var(--safe-bottom));
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 18px;
+  border-radius: var(--r-16);
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  box-shadow: var(--sh-float);
+}
+.walkin-bar strong { font-size: 18px; font-weight: 500; }
+.walkin .adm-card-head { flex-wrap: wrap; }
+
+/* Small phones: one-row bar (the back arrow already cancels) so the form keeps its height. */
+@media (max-width: 479.98px) {
+  .walkin-bar { flex-wrap: nowrap; padding: 10px 12px; }
+  .walkin-bar > .stack { min-width: 0; }
+  .walkin-bar .adm-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .walkin-cancel { display: none; }
+}
+
+@media (min-width: 480px) {
+  .walkin-staff { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .walkin-new { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 810px) {
+  .walkin-bar { bottom: 16px; }
+  .walkin-staff { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* ---------- Staff ---------- */
+.staff-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.staff-card { text-align: left; width: 100%; transition: box-shadow 0.2s ease; }
+.staff-card:hover { box-shadow: var(--sh-float); }
+.week-days { display: flex; gap: 4px; flex-wrap: wrap; }
+.week-days > * {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 12px;
+  color: var(--ink-62);
+  background: var(--ground);
+}
+.week-days > .is-on { background: var(--ink); color: #fff; }
+.week-days.is-editable > * { width: 40px; height: 40px; font-size: 14px; }
+
+@media (min-width: 810px) {
+  .staff-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1200px) {
+  .staff-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* ---------- Client record ---------- */
+.client-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
+.client-head { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.client-stats { flex: 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; min-width: 200px; }
+.adm-card-foot:has(> .btn:first-child) { justify-content: flex-start; flex-wrap: wrap; }
+
+@media (min-width: 810px) {
+  .client-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (min-width: 1024px) {
+  .client-layout { grid-template-columns: minmax(0, 1fr) 380px; }
+  .hair-record { position: sticky; top: calc(var(--adm-bar-h, 64px) + 12px); }
+}
+
+/* ---------- Reviews ---------- */
+.review-reply { padding: 10px 12px; border-radius: var(--r-12); background: var(--ground); font-size: 13px; }
+
+/* ---------- Settings ---------- */
+.settings-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.hours-table { display: flex; flex-direction: column; }
+.hours-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; flex-wrap: wrap; }
+.hours-row + .hours-row { border-top: 1px solid var(--ink-06); }
+.hours-input { width: 112px; min-height: 40px; }
+
+@media (min-width: 810px) {
+  .settings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .settings-wide { grid-column: 1 / -1; }
+}
