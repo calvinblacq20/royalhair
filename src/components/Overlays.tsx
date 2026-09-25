@@ -5,7 +5,7 @@ import { SALON } from "../data/business";
 import { blurIn, motionMode, spring } from "../motion";
 import { LogoMark } from "./Brand";
 
-const SPLASH_KEY = "fq-splash-seen";
+const SPLASH_KEY = "rh-splash-seen";
 /** Long enough to hold the finished logo, name and tagline on screen for about two seconds. */
 const SPLASH_MS = 3200;
 /** Without the write-in animation there is nothing to wait for, but the brand still gets a beat. */
