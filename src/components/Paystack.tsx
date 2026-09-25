@@ -17,7 +17,7 @@ interface PaystackSheetProps {
   open: boolean;
   onClose: () => void;
   amount: number;
-  /** What the money is for, e.g. "Deposit for FQ-1042". */
+  /** What the money is for, e.g. "Deposit for RH-1042". */
   label: string;
   email: string;
   phone: string;
