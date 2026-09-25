@@ -4,11 +4,12 @@ import { HashRouter, Link, Outlet, Route, Routes, useLocation } from "react-rout
 import { Skeleton } from "./components/Bits";
 import { DesktopFooter, DesktopNav, TabBar } from "./components/Chrome";
 import { NotifyProvider } from "./components/Notify";
+import { Splash } from "./components/Overlays";
 import { SmoothScroll, useScrollTo } from "./components/Scroll";
+import { Explore } from "./client/Explore";
 import { Home } from "./client/Home";
-import { Profile } from "./client/Profile";
-import { Services } from "./client/Services";
 import { Visits } from "./client/Visits";
+import { Profile } from "./client/Profile";
 import { motionMode } from "./motion";
 
 // Deeper screens load on demand to keep the first download small on mobile data.
@@ -98,15 +99,16 @@ function ClientApp() {
           <Routes>
             <Route element={<TabsLayout />}>
               <Route index element={<Home />} />
-              <Route path="services" element={<Services />} />
+              <Route path="explore" element={<Explore />} />
+              <Route path="services" element={<Explore />} />
               <Route path="visits" element={<Visits />} />
               <Route path="profile" element={<Profile />} />
             </Route>
             <Route path="book" element={<BookFlow />} />
             <Route element={<NavLayout />}>
-              <Route path="branches" element={<Branches />} />
               <Route path="visits/:visitId" element={<VisitDetail />} />
               <Route path="visits/:visitId/receipts/:paymentId" element={<ReceiptPage />} />
+              <Route path="branches" element={<Branches />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
@@ -125,6 +127,7 @@ export function App() {
     <MotionConfig reducedMotion={mode === "full" ? "never" : "always"} transition={mode === "off" ? { duration: 0 } : undefined}>
       <HashRouter>
         <NotifyProvider>
+          <Splash />
           <Routes>
             <Route
               path="admin/*"

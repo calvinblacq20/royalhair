@@ -1,6 +1,6 @@
 /*
- * Salon-specific pieces layered on the shared system: the service menu, the booking slots,
- * branch cards and the visit list. Breakpoints match responsive.css (810 and 1024).
+ * Salon-specific pieces layered on the shared system: safe areas, service tiles, the booking
+ * slots and the branch list. Breakpoints match responsive.css (810 and 1024).
  * Mobile first: every grid starts as one column and only widens where there is room.
  */
 
@@ -25,17 +25,9 @@
 .field-error { color: var(--danger); font-size: 13px; line-height: 1.4; }
 .field input[aria-invalid="true"] { border-bottom-color: var(--danger); }
 .hours-today { font-weight: 500; }
-.price-note { margin-top: 20px; }
 
-/* Wraps on narrow phones instead of overflowing sideways. */
-.hero-actions-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
-
-/* ---------- Home ---------- */
-.home-hero { display: flex; flex-direction: column; gap: 12px; padding-top: calc(28px + env(safe-area-inset-top, 0px)); }
-.home-hero .t-lead { max-width: 56ch; }
 .wordmark { display: block; height: auto; max-width: 100%; }
-.home-logo { width: min(220px, 62vw); margin-bottom: 8px; }
-.closing-logo { width: min(240px, 70%); margin-bottom: 4px; }
+
 .app-icon img { display: block; }
 
 /* Stands in for a photo until the salon sends its own: a toned panel with the service's icon. */
@@ -59,35 +51,6 @@
 .group-tile.tone-champagne { --tone-a: #ead9c4; --tone-b: #f6efe6; }
 .group-tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 
-.group-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.group-card {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 10px 10px 14px;
-  border-radius: var(--r-20);
-  background: var(--surface);
-  box-shadow: var(--sh-soft);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  min-width: 0;
-}
-.group-card:hover { transform: translateY(-2px); box-shadow: var(--sh-float); }
-.group-card:active { transform: translateY(0); }
-.group-card .t-title { overflow-wrap: anywhere; }
-
-.branch-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
-.branch-card { min-width: 0; transition: box-shadow 0.2s ease; }
-.branch-card:hover { box-shadow: var(--sh-float); }
-
-.review-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
-.review-grid blockquote { margin: 0; }
-
-.closing-card { background: var(--charcoal); color: #fff; }
-.closing-card .muted { color: var(--white-75); }
-.closing-card .btn-ghost-dark { color: #fff; }
-
-/* ---------- Services ---------- */
-.service-row { align-items: flex-start; padding-block: 14px; }
 .service-price { align-items: flex-end; flex: none; }
 
 /* ---------- Booking ---------- */
@@ -104,126 +67,21 @@
   .flow-screen .sticky-bar > .btn-cta { width: 100%; }
 }
 
-/* ---------- Visits ---------- */
-.visit-head { padding-top: 8px; align-items: flex-start; }
-.visit-head .badge { align-self: flex-start; }
-.visit-row { display: flex; align-items: center; gap: 14px; min-width: 0; }
-.visit-row .grow { min-width: 0; }
-.visit-row .t-title { overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-.visit-when {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 52px;
-  height: 56px;
-  border-radius: var(--r-12);
-  background: var(--magenta-wash);
-  line-height: 1.1;
-}
-.visit-when b { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
-.visit-when span { font-size: 11px; color: var(--ink-75); text-transform: uppercase; letter-spacing: 0.04em; }
-
-/* ---------- Profile ---------- */
-.stat-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-
 /* ---------- Wider screens ---------- */
 @media (min-width: 810px) {
-  .home-hero { padding-top: 48px; }
-  .home-hero h1 { font-size: 52px; letter-spacing: -0.04em; max-width: 16ch; }
-  .group-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .branch-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .review-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .slot-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .branch-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 20px; }
   .branch-list > .section { margin-top: 20px; }
 }
 
 @media (min-width: 1024px) {
-  .group-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .slot-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   .branch-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
-@media (hover: none) {
-  .group-card:hover, .branch-card:hover { transform: none; box-shadow: var(--sh-soft); }
-}
-
-/* ---------- Photos ---------- */
-/* Width first, so a ratio inside a flex column never sizes the photo from its height. */
-.group-card .photo { width: 100%; }
-.service-thumb { flex: none; width: 48px; }
-.service-thumb.is-lg { width: 56px; align-self: flex-start; }
 .gallery { display: flex; gap: 12px; margin-inline: calc(var(--gutter) * -1); padding: 2px var(--gutter) 8px; scroll-snap-type: x mandatory; }
-.gallery-item { flex: none; width: min(62vw, 240px); display: flex; flex-direction: column; gap: 8px; scroll-snap-align: start; }
-.gallery-item .photo { width: 100%; }
 
 @media (min-width: 810px) {
   .gallery { margin-inline: 0; padding-inline: 0; }
 }
 
-/* ---------- Desktop hero panel ---------- */
-.home-top { display: block; }
-.hero-aside { display: none; }
-@media (min-width: 1024px) {
-  .home-top { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: 48px; align-items: center; }
-  .home-top .home-logo { display: none; }
-  .hero-aside {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    margin-top: 48px;
-    padding: 32px;
-    border-radius: var(--r-40);
-    background: var(--charcoal);
-    color: #fff;
-    box-shadow: var(--sh-deep);
-  }
-  .hero-aside-logo { width: 100%; max-width: 360px; align-self: center; }
-  .hero-branches { display: flex; flex-direction: column; }
-  .hero-branches li { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid rgba(255, 255, 255, 0.1); }
-  .hero-branch-hours { color: var(--white-75); }
-  .hero-branch-phone { color: var(--white-75); white-space: nowrap; }
-  .hero-branch-phone:hover { color: #fff; text-decoration: underline; }
-  .hero-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: rgba(255, 255, 255, 0.3); }
-  .hero-dot.is-open { background: #4cd07d; box-shadow: 0 0 0 4px rgba(76, 208, 125, 0.18); }
-  .hero-aside .btn-cta { align-self: flex-start; }
-}
-
-/* ---------- Choosing a barber or stylist ---------- */
-.pro-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
-.pro-card { align-items: center; }
-.pro-any {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--magenta-wash);
-  color: var(--magenta-deep);
-}
-
-/* ---------- Meet the team ---------- */
-.team-strip { display: flex; gap: 12px; margin-inline: calc(var(--gutter) * -1); padding: 2px var(--gutter) 8px; }
-.team-card {
-  flex: none;
-  width: 124px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 16px 10px;
-  text-align: center;
-  border-radius: var(--r-20);
-  background: var(--surface);
-  box-shadow: var(--sh-soft);
-}
-.team-card .avatar { margin-bottom: 6px; }
-.team-card .truncate { max-width: 100%; }
-
-@media (min-width: 480px) {
-  .pro-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media (min-width: 810px) {
-  .team-strip { margin-inline: 0; padding-inline: 0; }
-}

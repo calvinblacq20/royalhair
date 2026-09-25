@@ -1,12 +1,13 @@
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { CalendarDays, Users } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Cta } from "../../components/Button";
+import { DateStrip } from "../../components/Pickers";
 import { branchById } from "../../data/business";
 import { ROLE_LABEL, serviceById } from "../../data/catalog";
 import { useAppData } from "../../data/store";
 import { holdsSlot, openingOn, staffWorksOn } from "../../lib/booking";
-import { addDays, dayKey, fmtDayLong, fmtTime, localIso, parseLocal, startOfDay } from "../../lib/format";
+import { addDays, dayKey, daysBetween, fmtDayLong, fmtTime, localIso, parseLocal, plural, startOfDay } from "../../lib/format";
 import { badgeFor } from "../../lib/visits";
 import { concreteBranchId, useBranchScope } from "../branch";
 import { useNow } from "../hooks";
@@ -28,8 +29,35 @@ export function Diary() {
   const scope = useBranchScope();
   const branchId = concreteBranchId(scope);
   const branch = branchById(branchId)!;
-  const [day, setDay] = useState(() => startOfDay(now));
+  const [params, setParams] = useSearchParams();
+  const today = startOfDay(now);
+  const raw = params.get("day");
+  const linked = raw && /^\d{4}-\d{2}-\d{2}$/.test(raw) ? parseLocal(raw) : null;
+  // A link more than a year out is treated as a typo rather than drawing a thousand-day strip.
+  const day = linked && Math.abs(daysBetween(today, linked)) <= 366 ? linked : today;
+  // Three days back so the desk can close out recent visits, two months ahead so every online
+  // booking is reachable, and always the day in the link.
+  const days = useMemo(() => {
+    const from = new Date(Math.min(addDays(today, -3).getTime(), day.getTime()));
+    const to = new Date(Math.max(addDays(today, 60).getTime(), day.getTime()));
+    return Array.from({ length: daysBetween(from, to) + 1 }, (_, i) => addDays(from, i));
+  }, [today.getTime(), day.getTime()]);
   const [openId, setOpenId] = useState<string | null>(null);
+  const setDay = (key: string) =>
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (key === dayKey(now)) next.delete("day");
+        else next.set("day", key);
+        return next;
+      },
+      { replace: true },
+    );
+  const counts = useMemo(() => {
+    const perDay = new Map<string, number>();
+    for (const v of data.visits) if (v.branchId === branchId && holdsSlot(v)) perDay.set(v.start.slice(0, 10), (perDay.get(v.start.slice(0, 10)) ?? 0) + 1);
+    return perDay;
+  }, [data.visits, branchId]);
 
   const opening = openingOn(branch, day);
   const staff = data.staff.filter((s) => s.branchId === branchId && staffWorksOn(s, day));
@@ -65,21 +93,22 @@ export function Diary() {
       }
     >
       <div className="diary-nav">
-        <button className="icon-btn" onClick={() => setDay((d) => addDays(d, -1))} aria-label="Previous day">
-          <ChevronLeft size={20} strokeWidth={1.8} />
-        </button>
-        <button className="chip" onClick={() => setDay(startOfDay(now))} disabled={dayKey(day) === dayKey(now)}>
-          Today
-        </button>
-        <button className="icon-btn" onClick={() => setDay((d) => addDays(d, 1))} aria-label="Next day">
-          <ChevronRight size={20} strokeWidth={1.8} />
-        </button>
+        <DateStrip
+          label="Choose a day"
+          days={days}
+          selected={dayKey(day)}
+          onSelect={setDay}
+          stateFor={(d) => {
+            const n = counts.get(dayKey(d)) ?? 0;
+            return { disabled: false, flag: !openingOn(branch, d) ? "Closed" : n ? plural(n, "visit") : undefined };
+          }}
+        />
       </div>
 
       {!opening ? (
-        <EmptyState icon={<Plus size={24} />} title={`${branch.name} is closed`} body="Pick another day, or change the opening hours in Settings." />
+        <EmptyState icon={<CalendarDays size={22} />} title={`${branch.name} is closed this day`} body="Pick another day, or change the opening hours in Settings." />
       ) : staff.length === 0 ? (
-        <EmptyState icon={<Plus size={24} />} title="Nobody is rostered" body="No staff member works at this branch on this day. Check the Staff screen." />
+        <EmptyState icon={<Users size={22} />} title="Nobody is rostered" body="No staff member works at this branch on this day. Check the Staff screen." />
       ) : (
         <div className="diary-scroll" role="region" aria-label={`Diary for ${branch.name}`} tabIndex={0}>
           <div className="diary" style={{ gridTemplateColumns: `56px repeat(${staff.length}, minmax(148px, 1fr))` }}>

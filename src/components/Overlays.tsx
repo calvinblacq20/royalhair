@@ -90,14 +90,14 @@ export function SuccessScreen({ open, title, tone = "success", onDone }: Success
   const blobs =
     tone === "success"
       ? [
-          { c: "#d9ff5c", x: "-20%", y: "-10%", s: "70vmax" },
-          { c: "#c0adff", x: "35%", y: "30%", s: "65vmax" },
-          { c: "#b8deff", x: "-10%", y: "55%", s: "55vmax" },
+          { c: "#fc5aa3", x: "-20%", y: "-10%", s: "70vmax" },
+          { c: "#ffc2dc", x: "35%", y: "30%", s: "65vmax" },
+          { c: "#ead9c4", x: "-10%", y: "55%", s: "55vmax" },
         ]
       : [
-          { c: "#e0c5b6", x: "-20%", y: "-10%", s: "70vmax" },
-          { c: "#c0adff", x: "35%", y: "35%", s: "60vmax" },
-          { c: "#a5b2cf", x: "-15%", y: "55%", s: "55vmax" },
+          { c: "#e2d9da", x: "-20%", y: "-10%", s: "70vmax" },
+          { c: "#cfa9c4", x: "35%", y: "35%", s: "60vmax" },
+          { c: "#b9aab0", x: "-15%", y: "55%", s: "55vmax" },
         ];
 
   return createPortal(

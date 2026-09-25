@@ -50,18 +50,23 @@ export function totalMinutes(services: Service[], turnaroundMinutes = 0): number
  * Returns the visit that clashes, or null when the slot is free.
  *
  * `ignoreVisitId` lets a visit be rescheduled without clashing with itself.
+ * `gapMinutes` keeps that much clean-down time free after every visit, the new one included.
  */
 export function findClash(
   visits: Visit[],
   staffId: string,
   span: Span,
   ignoreVisitId?: string,
+  gapMinutes = 0,
 ): Visit | null {
+  const pad = gapMinutes * 60_000;
+  const wanted = { start: span.start, end: new Date(span.end.getTime() + pad) };
   for (const visit of visits) {
     if (visit.id === ignoreVisitId) continue;
     if (visit.staffId !== staffId) continue;
     if (!holdsSlot(visit)) continue;
-    if (overlaps(span, spanOf(visit))) return visit;
+    const taken = spanOf(visit);
+    if (overlaps(wanted, { start: taken.start, end: new Date(taken.end.getTime() + pad) })) return visit;
   }
   return null;
 }
@@ -71,6 +76,8 @@ export interface SlotOptions {
   stepMinutes?: number;
   /** Slots starting sooner than this many minutes from now are not offered. */
   leadMinutes?: number;
+  /** Clean-down minutes kept free between visits. */
+  gapMinutes?: number;
 }
 
 /**
@@ -82,7 +89,7 @@ export function slotsFor(
   options: SlotOptions = {},
 ): string[] {
   const { branch, staff, day, minutes, visits, now } = args;
-  const { stepMinutes = 30, leadMinutes = 60 } = options;
+  const { stepMinutes = 30, leadMinutes = 60, gapMinutes = 0 } = options;
 
   if (minutes <= 0) return [];
   const opening = openingOn(branch, day);
@@ -96,7 +103,7 @@ export function slotsFor(
     const start = new Date(t);
     if (start < earliest) continue;
     const span = { start, end: new Date(t + minutes * 60_000) };
-    if (findClash(visits, staff.id, span)) continue;
+    if (findClash(visits, staff.id, span, undefined, gapMinutes)) continue;
     slots.push(localIso(start));
   }
   return slots;
@@ -152,8 +159,9 @@ export function validateSlot(args: {
   visits: Visit[];
   now: Date;
   ignoreVisitId?: string;
+  gapMinutes?: number;
 }): string | null {
-  const { branch, staff, start, minutes, visits, now, ignoreVisitId } = args;
+  const { branch, staff, start, minutes, visits, now, ignoreVisitId, gapMinutes = 0 } = args;
   if (minutes <= 0) return "Choose at least one service.";
   if (start < now) return "That time has already passed.";
 
@@ -163,7 +171,9 @@ export function validateSlot(args: {
   if (start < opening.start || end > opening.end) return `That doesn't fit inside ${branch.name}'s opening hours.`;
   if (!staffWorksOn(staff, start)) return `${staff.name} doesn't work that day.`;
 
-  const clash = findClash(visits, staff.id, { start, end }, ignoreVisitId);
-  if (clash) return `${staff.name} was just booked for that time. Please pick another slot.`;
+  if (findClash(visits, staff.id, { start, end }, ignoreVisitId)) return `${staff.name} was just booked for that time. Please pick another slot.`;
+  if (gapMinutes > 0 && findClash(visits, staff.id, { start, end }, ignoreVisitId, gapMinutes)) {
+    return `${staff.name} needs ${gapMinutes} minutes between clients to clean down. Please pick another slot.`;
+  }
   return null;
 }

@@ -140,8 +140,8 @@ export function LineChart({ series, labels, format, axisFormat, ariaLabel, heigh
         <svg width={width} height={height} aria-hidden="true">
           <defs>
             <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#c0adff" stopOpacity="0.28" />
-              <stop offset="100%" stopColor="#c0adff" stopOpacity="0" />
+              <stop offset="0%" stopColor="#fc5aa3" stopOpacity="0.22" />
+              <stop offset="100%" stopColor="#fc5aa3" stopOpacity="0" />
             </linearGradient>
           </defs>
           {ticks.map((t) => (

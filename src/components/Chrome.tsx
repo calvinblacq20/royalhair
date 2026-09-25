@@ -1,11 +1,11 @@
-import { ArrowLeft, ArrowRight, CalendarDays, Home, Scissors, UserRound, X } from "lucide-react";
-import { motion } from "motion/react";
-import { useEffect, useState, type ReactNode } from "react";
+import { ArrowLeft, ArrowRight, CalendarDays, Home, Search, UserRound, X } from "lucide-react";
+import { motion, useScroll, useTransform } from "motion/react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { BRANCHES, SALON } from "../data/business";
 import { accountOf, useAppData } from "../data/store";
 import { formatGhPhone, telLink } from "../lib/contact";
-import { spring } from "../motion";
+import { isCalm, spring } from "../motion";
 import { AppIcon, Wordmark } from "./Brand";
 
 export function useMediaQuery(query: string): boolean {
@@ -71,18 +71,18 @@ export function TopBar({ title, back, close, right, solidAfter = 8, alwaysSolid,
 
 const TABS = [
   { to: "/", label: "Home", icon: Home, end: true },
-  { to: "/services", label: "Services", icon: Scissors },
+  { to: "/explore", label: "Explore", icon: Search },
   { to: "/visits", label: "Visits", icon: CalendarDays },
 ] as const;
 
-/** Floating top navigation for tablet and desktop. */
+/** Makro-style floating top navigation for tablet and desktop. */
 export function DesktopNav() {
   const account = accountOf(useAppData());
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [dark, setDark] = useState(false);
 
-  // Turn the nav dark while it floats over a dark section.
+  // Turn the nav dark while it floats over a dark section, as in the reference.
   useEffect(() => {
     const probe = 40;
     const check = () => {
@@ -137,49 +137,82 @@ export function DesktopNav() {
   );
 }
 
-/** Footer that sits underneath the page and is revealed as the content lifts away. */
+/**
+ * Footer that sits underneath the page: the content lifts away to reveal it,
+ * and the giant wordmark rises as the reveal completes (Makro curtain).
+ */
 export function DesktopFooter() {
+  const ref = useRef<HTMLElement>(null);
+  const calm = isCalm();
+  const { scrollY } = useScroll();
+  const height = useRef(1);
+  const pageHeight = useRef(0);
+  const viewportHeight = useRef(0);
+
+  // Heights are measured on resize and cached: reading them on every scroll frame forces a re-layout.
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => {
+      height.current = el.offsetHeight || 1;
+      pageHeight.current = document.documentElement.scrollHeight;
+      viewportHeight.current = window.innerHeight;
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    ro.observe(document.body);
+    window.addEventListener("resize", measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, []);
+
+  // 0 while the footer is covered, 1 once the page has fully lifted off it.
+  const reveal = useTransform(scrollY, (y) => {
+    const remaining = pageHeight.current - (y + viewportHeight.current);
+    return Math.min(1, Math.max(0, 1 - remaining / height.current));
+  });
+  const wordY = useTransform(reveal, [0, 1], ["45%", "0%"]);
+  const wordOpacity = useTransform(reveal, [0, 0.6], [0.2, 1]);
+  const innerY = useTransform(reveal, [0, 1], [40, 0]);
+
   return (
-    <footer className="desk-footer desktop-only">
-      <div className="desk-footer-inner">
+    <footer ref={ref} className="desk-footer desktop-only">
+      <motion.div className="desk-footer-inner" style={calm ? undefined : { y: innerY }}>
         <div className="stack gap-12" style={{ maxWidth: 260 }}>
           <Wordmark width={180} />
-          <p className="muted">Barbershop, salon and spa across three branches in Accra and Kumasi.</p>
+          <p className="muted">Barbershop, salon and spa, with branches at West Hills Mall, Airport and Kumasi.</p>
         </div>
         <div className="desk-footer-col">
           <p className="subtle t-cap">Salon</p>
           <Link to="/">Home</Link>
-          <Link to="/services">Services &amp; prices</Link>
+          <Link to="/explore">Services & prices</Link>
           <Link to="/visits">My visits</Link>
           <Link to="/book">Book a visit</Link>
         </div>
         <div className="desk-footer-col">
           <p className="subtle t-cap">Contact</p>
-          <a href={SALON.whatsappBusiness} target="_blank" rel="noreferrer">
-            WhatsApp
-          </a>
+          <a href={SALON.whatsappBusiness} target="_blank" rel="noreferrer">WhatsApp</a>
           <a href={telLink(SALON.phone)}>{formatGhPhone(SALON.phone)}</a>
-          <a href={SALON.instagram} target="_blank" rel="noreferrer">
-            Instagram
-          </a>
-          <a href={SALON.tiktok} target="_blank" rel="noreferrer">
-            TikTok
-          </a>
+          <a href={SALON.instagram} target="_blank" rel="noreferrer">Instagram</a>
+          <a href={SALON.tiktok} target="_blank" rel="noreferrer">TikTok</a>
         </div>
         <div className="desk-footer-col">
           <p className="subtle t-cap">Branches</p>
-          {BRANCHES.filter((b) => b.active).map((branch) => (
-            <Link key={branch.id} to="/branches">
-              {branch.name}
+          {BRANCHES.filter((b) => b.active).map((b) => (
+            <Link key={b.id} to="/branches">
+              {b.name}
             </Link>
           ))}
         </div>
-      </div>
-      <div className="desk-wordmark" aria-hidden="true">
+      </motion.div>
+      <motion.div className="desk-wordmark" aria-hidden="true" style={calm ? { opacity: wordOpacity } : { y: wordY, opacity: wordOpacity }}>
         {SALON.name}
-      </div>
+      </motion.div>
       <p className="desk-copy t-cap">
-        © {new Date().getFullYear()} {SALON.name} · Demo build
+        © {new Date().getFullYear()} {SALON.name} Salon &amp; Spa · Demo build
       </p>
     </footer>
   );

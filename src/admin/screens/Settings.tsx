@@ -1,127 +1,66 @@
-import { RotateCcw } from "lucide-react";
-import { useState } from "react";
+import { ArrowUpRight, RotateCcw } from "lucide-react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import { Button } from "../../components/Button";
 import { useNotify } from "../../components/Notify";
+import type { SalonSettings } from "../../data/business";
 import { actions, desk, useAppData } from "../../data/store";
 import type { Branch } from "../../data/types";
-import { ConfirmSheet } from "../sheets";
+import { CardHead } from "../controls";
 import { AdminPage } from "../Shell";
+import { ConfirmSheet } from "../sheets";
 
-const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const WEEK = [1, 2, 3, 4, 5, 6, 0];
+const DEFAULT_SPAN: [string, string] = ["09:00", "18:00"];
+const digits = (v: string) => Number(v.replace(/\D/g, "")) || 0;
+
+type Salon = SalonSettings["salon"];
+type Policies = SalonSettings["policies"];
+
+/**
+ * Keeps the draft in step with saved data when it changes elsewhere, without an effect.
+ * Compared by value: saving one card rebuilds every settings object, and that must not
+ * wipe another card's unsaved edits.
+ */
+function useDraft<T>(saved: T): [T, (next: T) => void, () => void] {
+  const key = JSON.stringify(saved);
+  const [draft, setDraft] = useState(saved);
+  const [base, setBase] = useState(key);
+  if (base !== key) {
+    setBase(key);
+    setDraft(saved);
+  }
+  return [draft, setDraft, () => setDraft(saved)];
+}
 
 export function Settings() {
-  const data = useAppData();
   const notify = useNotify();
-  const [salon, setSalon] = useState(data.settings.salon);
-  const [policies, setPolicies] = useState(data.settings.policies);
-  const [error, setError] = useState("");
+  const data = useAppData();
   const [resetOpen, setResetOpen] = useState(false);
-
-  const saveSalon = () => {
-    const result = desk.saveSettings({ salon, policies });
-    if ("error" in result) {
-      setError(result.error);
-      return;
-    }
-    setError("");
-    notify("Saved", "Salon details and booking rules are updated.");
-  };
+  const [defaultsOpen, setDefaultsOpen] = useState(false);
 
   return (
-    <AdminPage title="Settings" status="Salon details, branches and booking rules">
-      <div className="adm-stack settings">
-        <section className="adm-card">
-          <div className="adm-card-head">
-            <h2 className="t-title">The salon</h2>
-          </div>
-          <div className="adm-card-body settings-grid">
-            <label className="field">
-              <span>Name</span>
-              <input value={salon.name} onChange={(e) => setSalon({ ...salon, name: e.target.value })} />
-            </label>
-            <label className="field">
-              <span>Main WhatsApp number</span>
-              <input value={salon.phone} onChange={(e) => setSalon({ ...salon, phone: e.target.value })} inputMode="tel" />
-            </label>
-            <label className="field">
-              <span>MoMo number for payments</span>
-              <input value={salon.momo} onChange={(e) => setSalon({ ...salon, momo: e.target.value })} inputMode="tel" />
-            </label>
-            <label className="field">
-              <span>MoMo account name</span>
-              <input value={salon.momoName} onChange={(e) => setSalon({ ...salon, momoName: e.target.value })} />
-            </label>
-            <label className="field">
-              <span>Instagram link</span>
-              <input value={salon.instagram} onChange={(e) => setSalon({ ...salon, instagram: e.target.value })} inputMode="url" />
-            </label>
-            <label className="field">
-              <span>TikTok link</span>
-              <input value={salon.tiktok} onChange={(e) => setSalon({ ...salon, tiktok: e.target.value })} inputMode="url" />
-            </label>
-          </div>
-        </section>
-
-        <section className="adm-card">
-          <div className="adm-card-head">
-            <h2 className="t-title">Booking rules</h2>
-          </div>
-          <div className="adm-card-body settings-grid">
-            <label className="field">
-              <span>Deposit to hold a booking (%)</span>
-              <input
-                inputMode="numeric"
-                value={Math.round(policies.depositRate * 100)}
-                onChange={(e) => setPolicies({ ...policies, depositRate: Number(e.target.value.replace(/\D/g, "")) / 100 })}
-              />
-            </label>
-            <label className="field">
-              <span>Free cancellation until (hours before)</span>
-              <input
-                inputMode="numeric"
-                value={policies.cancelWindowHours}
-                onChange={(e) => setPolicies({ ...policies, cancelWindowHours: Number(e.target.value.replace(/\D/g, "")) || 0 })}
-              />
-            </label>
-            <label className="field">
-              <span>Clean-down between clients (minutes)</span>
-              <input
-                inputMode="numeric"
-                value={policies.turnaroundMinutes}
-                onChange={(e) => setPolicies({ ...policies, turnaroundMinutes: Number(e.target.value.replace(/\D/g, "")) || 0 })}
-              />
-            </label>
-            <label className="field settings-wide">
-              <span>Receipt footer</span>
-              <input value={policies.receiptFooter} onChange={(e) => setPolicies({ ...policies, receiptFooter: e.target.value })} />
-            </label>
-          </div>
-          <div className="adm-card-foot">
-            {error && (
-              <p className="field-error grow" role="alert">
-                {error}
-              </p>
-            )}
-            <Button variant="dark" onClick={saveSalon}>
-              Save
-            </Button>
-          </div>
-        </section>
-
-        {data.branches.map((branch) => (
-          <BranchCard key={branch.id} branch={branch} />
+    <AdminPage title="Settings" status={<>Salon details, branches, hours and booking rules. Changes show on the client app too.</>}>
+      <div className="adm-grid adm-grid-2" style={{ maxWidth: 1040, alignItems: "start" }}>
+        <SalonCard salon={data.settings.salon} />
+        <PoliciesCard policies={data.settings.policies} />
+        {data.branches.map((b) => (
+          <BranchCard key={b.id} branch={b} />
         ))}
-
-        <section className="adm-card">
-          <div className="adm-card-head">
-            <h2 className="t-title">Demo data</h2>
-          </div>
+        <section className="adm-card" aria-labelledby="demo">
+          <CardHead id="demo" title="Demo" />
           <div className="adm-card-body stack gap-12">
-            <p className="muted">Puts every booking, client, price and setting back to the starting sample salon.</p>
-            <div>
-              <Button variant="danger" icon={<RotateCcw size={15} />} onClick={() => setResetOpen(true)}>
-                Reset demo
+            <p className="muted">All data is sample data kept in this browser. Resetting brings back the original bookings, clients and payments on both the client and salon sides.</p>
+            <div className="adm-actions">
+              <Button icon={<RotateCcw size={16} />} onClick={() => setResetOpen(true)}>
+                Reset demo data
               </Button>
+              <Button icon={<RotateCcw size={16} />} onClick={() => setDefaultsOpen(true)}>
+                Reset these settings
+              </Button>
+              <a className="btn btn-soft" href="#/">
+                <ArrowUpRight size={16} /> Open client app
+              </a>
             </div>
           </div>
         </section>
@@ -130,118 +69,233 @@ export function Settings() {
       <ConfirmSheet
         open={resetOpen}
         onClose={() => setResetOpen(false)}
-        title="Reset the whole demo?"
-        body="This clears everything changed since the demo started. It can't be undone."
-        confirmLabel="Reset everything"
         danger
+        title="Reset the demo?"
+        body="Every change made in this browser is replaced with the original sample data. This can't be undone."
+        confirmLabel="Reset"
         onConfirm={() => {
           actions.resetDemo();
           setResetOpen(false);
-          notify("Demo reset", "Everything is back to the starting data.");
-          window.location.reload();
+          notify("Demo reset", "Sample bookings, clients and payments are back.");
+        }}
+      />
+      <ConfirmSheet
+        open={defaultsOpen}
+        onClose={() => setDefaultsOpen(false)}
+        title="Put settings back?"
+        body="The salon details, booking rules, branches and opening hours go back to the ones the app shipped with. Bookings and clients aren't touched."
+        confirmLabel="Reset settings"
+        onConfirm={() => {
+          desk.resetSettings();
+          desk.resetBranches();
+          setDefaultsOpen(false);
+          notify("Settings reset", "Salon details, branches and hours are back to the defaults.");
         }}
       />
     </AdminPage>
   );
 }
 
-function BranchCard({ branch }: { branch: Branch }) {
-  const notify = useNotify();
-  const [draft, setDraft] = useState(branch);
-  const [error, setError] = useState("");
-
-  const setHours = (day: number, index: 0 | 1, value: string) => {
-    const hours = [...draft.hours];
-    const current = hours[day] ?? ["09:00", "18:00"];
-    hours[day] = index === 0 ? [value, current[1]] : [current[0], value];
-    setDraft({ ...draft, hours });
-  };
-
-  const toggleDay = (day: number, open: boolean) => {
-    const hours = [...draft.hours];
-    hours[day] = open ? ["09:00", "18:00"] : null;
-    setDraft({ ...draft, hours });
-  };
-
-  const save = () => {
-    const result = desk.saveBranch(branch.id, draft);
-    if ("error" in result) {
-      setError(result.error);
-      return;
-    }
-    setError("");
-    notify("Saved", `${result.branch.name} is updated on the site.`);
-  };
-
+/** A card whose fields are saved together; the button wakes up once something changes. */
+function EditCard({ id, title, dirty, onSave, onReset, error, action, children }: { id: string; title: string; dirty: boolean; onSave: (e: FormEvent) => void; onReset: () => void; error: string | null; action?: ReactNode; children: ReactNode }) {
   return (
-    <section className="adm-card">
-      <div className="adm-card-head">
-        <h2 className="t-title">{branch.name}</h2>
-        <label className="check-row" style={{ padding: 0 }}>
-          <input type="checkbox" checked={draft.active} onChange={(e) => setDraft({ ...draft, active: e.target.checked })} />
-          <span className="adm-meta">Open for bookings</span>
-        </label>
-      </div>
-      <div className="adm-card-body stack gap-16">
-        <div className="settings-grid">
-          <label className="field">
-            <span>Name</span>
-            <input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
-          </label>
-          <label className="field">
-            <span>Branch phone</span>
-            <input value={draft.phone} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} inputMode="tel" />
-          </label>
-          <label className="field settings-wide">
-            <span>Address</span>
-            <input value={draft.address} onChange={(e) => setDraft({ ...draft, address: e.target.value })} />
-          </label>
-          <label className="field settings-wide">
-            <span>How to find it (landmarks)</span>
-            <input value={draft.landmark ?? ""} onChange={(e) => setDraft({ ...draft, landmark: e.target.value })} placeholder="e.g. Ground floor, opposite the food court" />
-          </label>
-          <label className="field">
-            <span>Chairs</span>
-            <input inputMode="numeric" value={draft.chairs} onChange={(e) => setDraft({ ...draft, chairs: Number(e.target.value.replace(/\D/g, "")) || 0 })} />
-          </label>
-        </div>
-
-        <div className="stack gap-8">
-          <span className="adm-meta">Opening hours</span>
-          <div className="hours-table">
-            {WEEKDAYS.map((label, day) => {
-              const span = draft.hours[day];
-              return (
-                <div key={label} className="hours-row">
-                  <label className="check-row" style={{ padding: 0 }}>
-                    <input type="checkbox" checked={Boolean(span)} onChange={(e) => toggleDay(day, e.target.checked)} />
-                    <span>{label}</span>
-                  </label>
-                  {span ? (
-                    <span className="inline gap-8">
-                      <input className="adm-input hours-input" type="time" value={span[0]} onChange={(e) => setHours(day, 0, e.target.value)} aria-label={`${label} opens`} />
-                      <span className="subtle">to</span>
-                      <input className="adm-input hours-input" type="time" value={span[1]} onChange={(e) => setHours(day, 1, e.target.value)} aria-label={`${label} closes`} />
-                    </span>
-                  ) : (
-                    <span className="subtle">Closed</span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
+    <form className="adm-card" aria-labelledby={id} onSubmit={onSave} noValidate>
+      <CardHead id={id} title={title} action={dirty ? <span className="pill-tag">Unsaved</span> : action} />
+      <div className="adm-card-body stack gap-16">{children}</div>
+      {error && (
+        <p className="adm-form-error" role="alert" style={{ padding: "0 20px 8px" }}>
+          {error}
+        </p>
+      )}
       <div className="adm-card-foot">
-        {error && (
-          <p className="field-error grow" role="alert">
-            {error}
-          </p>
-        )}
-        <Button variant="dark" onClick={save}>
-          Save {branch.name}
+        <button type="button" className="adm-link" onClick={onReset} style={{ visibility: dirty ? "visible" : "hidden" }}>
+          Undo changes
+        </button>
+        <Button variant="dark" size="sm" type="submit" disabled={!dirty}>
+          Save
         </Button>
       </div>
-    </section>
+    </form>
+  );
+}
+
+function SalonCard({ salon }: { salon: Salon }) {
+  const notify = useNotify();
+  const [form, setForm, undo] = useDraft(salon);
+  const [error, setError] = useState<string | null>(null);
+  const dirty = (Object.keys(form) as (keyof Salon)[]).some((k) => form[k] !== salon[k]);
+  const field = (key: keyof Salon, label: string, hint?: string, type: "text" | "tel" | "url" | "textarea" = "text") => (
+    <div className="field">
+      <label htmlFor={`salon-${key}`}>{label}</label>
+      {type === "textarea" ? (
+        <textarea id={`salon-${key}`} rows={4} value={String(form[key])} maxLength={800} onChange={(e) => setForm({ ...form, [key]: e.target.value })} />
+      ) : (
+        <input id={`salon-${key}`} type={type} inputMode={type === "tel" ? "tel" : type === "url" ? "url" : undefined} value={String(form[key])} maxLength={200} onChange={(e) => setForm({ ...form, [key]: e.target.value })} />
+      )}
+      {hint && <span className="hint">{hint}</span>}
+    </div>
+  );
+
+  return (
+    <EditCard
+      id="salon"
+      title="The salon"
+      dirty={dirty}
+      error={error}
+      onReset={() => {
+        undo();
+        setError(null);
+      }}
+      onSave={(e) => {
+        e.preventDefault();
+        const result = desk.saveSettings({ salon: form });
+        if ("error" in result) return setError(result.error);
+        setError(null);
+        notify("Salon details saved", "Receipts, WhatsApp messages and the client app now use them.");
+      }}
+    >
+      {field("name", "Salon name")}
+      {field("phone", "Main WhatsApp number", "Bookings and questions from the client app go here.", "tel")}
+      {field("momo", "MoMo number for payments", "Deposits and balances are sent to this number.", "tel")}
+      {field("momoName", "MoMo account name", "Clients check this name before they send money.")}
+      {field("landline", "Landline", undefined, "tel")}
+      {field("email", "Email")}
+      {field("instagram", "Instagram link", undefined, "url")}
+      {field("tiktok", "TikTok link", undefined, "url")}
+      {field("about", "About the salon", "The paragraph on the home page.", "textarea")}
+    </EditCard>
+  );
+}
+
+function PoliciesCard({ policies }: { policies: Policies }) {
+  const notify = useNotify();
+  const [form, setForm, undo] = useDraft(policies);
+  const [error, setError] = useState<string | null>(null);
+  const dirty = (Object.keys(form) as (keyof Policies)[]).some((k) => form[k] !== policies[k]);
+
+  return (
+    <EditCard
+      id="policies"
+      title="Booking rules"
+      dirty={dirty}
+      error={error}
+      onReset={() => {
+        undo();
+        setError(null);
+      }}
+      onSave={(e) => {
+        e.preventDefault();
+        const result = desk.saveSettings({ policies: form });
+        if ("error" in result) return setError(result.error);
+        setError(null);
+        notify("Booking rules saved", "New bookings follow the new rules.");
+      }}
+    >
+      <div className="field">
+        <label htmlFor="policy-deposit">Deposit to hold a booking (%)</label>
+        <input id="policy-deposit" inputMode="numeric" value={Math.round(form.depositRate * 100)} onChange={(e) => setForm({ ...form, depositRate: digits(e.target.value) / 100 })} />
+        <span className="hint">Taken by MoMo or card when a client books online. 0 turns deposits off.</span>
+      </div>
+      <div className="field">
+        <label htmlFor="policy-cancel">Free cancellation until (hours before)</label>
+        <input id="policy-cancel" inputMode="numeric" value={form.cancelWindowHours} onChange={(e) => setForm({ ...form, cancelWindowHours: digits(e.target.value) })} />
+        <span className="hint">After this, clients have to call the branch to cancel.</span>
+      </div>
+      <div className="field">
+        <label htmlFor="policy-turnaround">Clean-down between clients (minutes)</label>
+        <input id="policy-turnaround" inputMode="numeric" value={form.turnaroundMinutes} onChange={(e) => setForm({ ...form, turnaroundMinutes: digits(e.target.value) })} />
+        <span className="hint">Online bookings leave this gap after every visit. The desk can still seat someone sooner.</span>
+      </div>
+      <div className="field">
+        <label htmlFor="policy-footer">Receipt footer</label>
+        <textarea id="policy-footer" rows={2} value={form.receiptFooter} maxLength={200} onChange={(e) => setForm({ ...form, receiptFooter: e.target.value })} />
+      </div>
+    </EditCard>
+  );
+}
+
+function BranchCard({ branch }: { branch: Branch }) {
+  const notify = useNotify();
+  const [form, setForm, undo] = useDraft(branch);
+  const [error, setError] = useState<string | null>(null);
+  const sameHours = WEEK.every((d) => (form.hours[d]?.[0] ?? "") === (branch.hours[d]?.[0] ?? "") && (form.hours[d]?.[1] ?? "") === (branch.hours[d]?.[1] ?? ""));
+  const dirty = !sameHours || (["name", "phone", "address", "landmark", "chairs", "active"] as const).some((k) => (form[k] ?? "") !== (branch[k] ?? ""));
+  const setDay = (day: number, span: readonly [string, string] | null) => {
+    const hours = [...form.hours];
+    hours[day] = span;
+    setForm({ ...form, hours });
+  };
+  const id = `branch-${branch.id}`;
+
+  return (
+    <EditCard
+      id={id}
+      title={branch.name}
+      dirty={dirty}
+      error={error}
+      action={!branch.active ? <span className="pill-tag">Not taking bookings</span> : undefined}
+      onReset={() => {
+        undo();
+        setError(null);
+      }}
+      onSave={(e) => {
+        e.preventDefault();
+        const result = desk.saveBranch(branch.id, { name: form.name, phone: form.phone, address: form.address, landmark: form.landmark, chairs: form.chairs, active: form.active, hours: form.hours });
+        if ("error" in result) return setError(result.error);
+        setError(null);
+        notify(`${result.branch.name} saved`, "Booking slots and the open or closed status follow the new details.");
+      }}
+    >
+      <label className="check-row">
+        <input type="checkbox" className="cbx" checked={form.active} onChange={(e) => setForm({ ...form, active: e.target.checked })} />
+        <span>Taking bookings</span>
+      </label>
+      <div className="adm-grid adm-grid-2" style={{ gap: 16 }}>
+        <div className="field">
+          <label htmlFor={`${id}-name`}>Branch name</label>
+          <input id={`${id}-name`} value={form.name} maxLength={60} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+        </div>
+        <div className="field">
+          <label htmlFor={`${id}-phone`}>Branch phone</label>
+          <input id={`${id}-phone`} type="tel" inputMode="tel" value={form.phone} maxLength={20} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+        </div>
+      </div>
+      <div className="field">
+        <label htmlFor={`${id}-address`}>Address on receipts</label>
+        <input id={`${id}-address`} value={form.address} maxLength={200} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+      </div>
+      <div className="field">
+        <label htmlFor={`${id}-landmark`}>How to find it</label>
+        <input id={`${id}-landmark`} value={form.landmark ?? ""} maxLength={200} onChange={(e) => setForm({ ...form, landmark: e.target.value })} placeholder="e.g. Ground floor, opposite the food court" />
+        <span className="hint">Shown with the map. People here find places by landmark.</span>
+      </div>
+      <div className="field" style={{ maxWidth: 200 }}>
+        <label htmlFor={`${id}-chairs`}>Chairs</label>
+        <input id={`${id}-chairs`} inputMode="numeric" value={form.chairs} onChange={(e) => setForm({ ...form, chairs: digits(e.target.value) })} />
+      </div>
+      <div className="stack gap-8">
+        <span className="adm-meta">Opening hours</span>
+        {WEEK.map((day) => {
+          const span = form.hours[day];
+          return (
+            <div key={day} className="between" style={{ gap: 12, flexWrap: "wrap" }}>
+              <label className="check-row" style={{ minWidth: 150 }}>
+                <input type="checkbox" className="cbx" checked={Boolean(span)} onChange={(e) => setDay(day, e.target.checked ? DEFAULT_SPAN : null)} />
+                <span>{DAY_NAMES[day]}</span>
+              </label>
+              {span ? (
+                <span className="inline" style={{ gap: 8 }}>
+                  <input className="adm-input" style={{ width: 118, height: 40 }} type="time" value={span[0]} aria-label={`${DAY_NAMES[day]} opens`} onChange={(e) => setDay(day, [e.target.value, span[1]])} />
+                  <span className="muted">to</span>
+                  <input className="adm-input" style={{ width: 118, height: 40 }} type="time" value={span[1]} aria-label={`${DAY_NAMES[day]} closes`} onChange={(e) => setDay(day, [span[0], e.target.value])} />
+                </span>
+              ) : (
+                <span className="muted">Closed</span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </EditCard>
   );
 }

@@ -5,7 +5,7 @@ import { formatGhPhone, normalizeGhPhone, whatsappLink } from "./contact";
 import { money, parseLocal, relativeDay } from "./format";
 import { amountInWords, receiptNumber, verifyCode, visitNumber } from "./receipts";
 import { cartTotal, commissionFor, depositFor, durationLabel } from "./pricing";
-import { badgeFor, balanceDue, canCancel, isLateCancel, paidTotal, validatePayment, whenPhrase } from "./visits";
+import { badgeFor, balanceDue, canCancel, isLateCancel, nextStep, paidTotal, validatePayment, whenPhrase } from "./visits";
 
 const service = (id: string, price: number, minutes: number): Service => ({
   id, name: id, group: "hair", description: "", price, minutes, bookable: true, repeatWeeks: 0, tone: "magenta",
@@ -146,6 +146,21 @@ describe("visit state", () => {
 
   it("reads nearby days as words", () => {
     expect(relativeDay(parseLocal("2026-01-04T10:00"), now)).toBe("Yesterday");
+  });
+
+  it("gives the desk one next step for each stage of the day", () => {
+    expect(nextStep(visit({ status: "requested" }))).toMatchObject({ kind: "move", to: "confirmed" });
+    expect(nextStep(visit({ status: "confirmed" }))).toMatchObject({ kind: "move", to: "arrived" });
+    expect(nextStep(visit({ status: "arrived" }))).toMatchObject({ kind: "move", to: "in-chair" });
+    expect(nextStep(visit({ status: "cancelled" }))).toBeNull();
+    expect(nextStep(visit({ status: "no-show" }))).toBeNull();
+  });
+
+  it("takes the money before finishing, and only what is still owed", () => {
+    expect(nextStep(visit({ status: "in-chair", payments: [payment(100)] }))).toEqual({ kind: "pay", label: `Take ${money(200)} and finish` });
+    expect(nextStep(visit({ status: "in-chair", payments: [payment(300)] }))).toMatchObject({ kind: "move", to: "done" });
+    expect(nextStep(visit({ status: "done" }))).toEqual({ kind: "pay", label: `Take ${money(300)}` });
+    expect(nextStep(visit({ status: "done", payments: [payment(300)] }))).toBeNull();
   });
 });
 

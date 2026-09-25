@@ -1,160 +1,269 @@
-import { RotateCcw, Scissors } from "lucide-react";
-import { useState } from "react";
+import { Eye, EyeOff, Pencil, RotateCcw } from "lucide-react";
+import { useMemo, useState, type FormEvent } from "react";
+import { Photo } from "../../components/Bits";
 import { Button } from "../../components/Button";
 import { useNotify } from "../../components/Notify";
 import { Sheet } from "../../components/Sheet";
-import { GROUPS } from "../../data/catalog";
+import { GROUP_LABEL, GROUPS, servicePhoto } from "../../data/catalog";
 import { desk, useAppData } from "../../data/store";
-import type { Service } from "../../data/types";
-import { money } from "../../lib/format";
+import type { Service, ServiceGroup } from "../../data/types";
+import { money, parseLocal, plural } from "../../lib/format";
 import { durationLabel } from "../../lib/pricing";
+import { periodRange } from "../../lib/trends";
+import { useNow } from "../hooks";
+import { AdminPage } from "../Shell";
 import { ConfirmSheet } from "../sheets";
-import { AdminPage, EmptyState } from "../Shell";
+
+const toNumber = (v: string) => Number(v.replace(/[^\d.]/g, ""));
+const priceText = (s: Service) => `${s.priceFrom ? "from " : ""}${money(s.price)}`;
 
 /** The price list the client sees. Changing a price never rewrites a booking already made. */
 export function Services() {
   const data = useAppData();
+  const now = useNow();
   const notify = useNotify();
+  const [group, setGroup] = useState<ServiceGroup | "all">("all");
   const [editing, setEditing] = useState<Service | null>(null);
   const [resetOpen, setResetOpen] = useState(false);
+  const recent = useMemo(() => {
+    const range = periodRange("90d", now);
+    const counts = new Map<string, number>();
+    for (const v of data.visits) {
+      const t = parseLocal(v.start);
+      if (t < range.start || t >= range.end || v.status !== "done") continue;
+      for (const item of v.items) counts.set(item.serviceId, (counts.get(item.serviceId) ?? 0) + 1);
+    }
+    return counts;
+  }, [data.visits, now]);
+
+  const services = data.services.filter((s) => group === "all" || s.group === group);
+  const hidden = data.services.filter((s) => s.active === false).length;
+
+  const toggle = (service: Service) => {
+    const result = desk.saveService(service.id, { active: service.active === false });
+    if ("error" in result) return notify("Couldn't save", result.error);
+    notify(service.active === false ? "Service shown again" : "Service hidden", service.active === false ? `${service.name} is back on the price list.` : `${service.name} is hidden from clients. Bookings already made are not affected.`);
+  };
 
   return (
     <AdminPage
       title="Services & prices"
-      status={`${data.services.filter((s) => s.active !== false).length} on the menu · prices shown to clients`}
-      actions={
-        <Button size="sm" icon={<RotateCcw size={15} />} onClick={() => setResetOpen(true)}>
-          Reset prices
-        </Button>
+      status={
+        <>
+          {plural(data.services.length, "service")} · {hidden ? `${hidden} hidden · ` : ""}prices clients see when they book
+        </>
       }
     >
-      <div className="adm-stack">
-        {GROUPS.map((group) => {
-          const items = data.services.filter((s) => s.group === group.id);
-          if (!items.length) return null;
-          return (
-            <section key={group.id} className="adm-card">
-              <div className="adm-card-head">
-                <h2 className="t-title">{group.label}</h2>
-                <span className="adm-meta">{items.length}</span>
-              </div>
-              <div className="adm-rows">
-                {items.map((service) => (
-                  <button key={service.id} className={`adm-row ${service.active === false ? "is-inactive" : ""}`} onClick={() => setEditing(service)}>
-                    <span className="grow stack gap-4" style={{ minWidth: 0 }}>
-                      <span className="t-title truncate">{service.name}</span>
-                      <span className="muted t-cap truncate">
-                        {durationLabel(service.minutes)}
-                        {service.repeatWeeks ? ` · repeats every ${service.repeatWeeks} wk` : ""}
-                        {!service.bookable ? " · not bookable online" : ""}
-                        {service.active === false ? " · hidden" : ""}
-                      </span>
-                    </span>
-                    <span className="tabular">
-                      {service.priceFrom ? "from " : ""}
-                      {money(service.price)}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </section>
-          );
-        })}
-        {data.services.length === 0 && <EmptyState icon={<Scissors size={24} />} title="No services" body="Reset prices to load the starting menu." />}
+      <div className="chips" role="radiogroup" aria-label="Part of the salon" style={{ margin: "0 0 16px" }}>
+        {[{ id: "all" as const, label: "All" }, ...GROUPS].map((g) => (
+          <button key={g.id} role="radio" aria-checked={group === g.id} className={`chip ${group === g.id ? "is-active" : ""}`} onClick={() => setGroup(g.id)}>
+            {g.label}
+          </button>
+        ))}
       </div>
+      <section className="adm-card" aria-label="Services">
+        <div className="adm-table-wrap desktop-only">
+          <table className="adm-table">
+            <thead>
+              <tr>
+                <th scope="col">Service</th>
+                <th scope="col">Part of the salon</th>
+                <th scope="col" className="num">
+                  Price
+                </th>
+                <th scope="col" className="num">
+                  Takes
+                </th>
+                <th scope="col" className="num">
+                  Due back after
+                </th>
+                <th scope="col" className="num">
+                  Done, 90 days
+                </th>
+                <th scope="col" className="num">
+                  <span className="sr-only">Actions</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {services.map((s) => (
+                <tr key={s.id} style={{ cursor: "default", opacity: s.active === false ? 0.55 : 1 }}>
+                  <td>
+                    <span className="inline" style={{ gap: 12 }}>
+                      <Photo tone={s.tone} src={servicePhoto(s)} sizes="36px" height={36} radius={6} markSize={14} className="style-mini" />
+                      <span style={{ fontWeight: 500 }}>{s.name}</span>
+                      {s.active === false && <span className="pill-tag">Hidden</span>}
+                      {!s.bookable && s.active !== false && <span className="pill-tag">Desk only</span>}
+                      {s.featured && <span className="pill-tag">Featured</span>}
+                    </span>
+                  </td>
+                  <td>{GROUP_LABEL[s.group]}</td>
+                  <td className="num">{priceText(s)}</td>
+                  <td className="num">{durationLabel(s.minutes)}</td>
+                  <td className="num">{s.repeatWeeks ? plural(s.repeatWeeks, "week") : "–"}</td>
+                  <td className="num">{recent.get(s.id) ?? 0}</td>
+                  <td className="num">
+                    <span className="inline" style={{ gap: 4, justifyContent: "flex-end" }}>
+                      <button className="icon-btn is-plain" style={{ width: 34, height: 34 }} onClick={() => toggle(s)} aria-label={s.active === false ? `Show ${s.name} to clients` : `Hide ${s.name} from clients`}>
+                        {s.active === false ? <EyeOff size={17} /> : <Eye size={17} />}
+                      </button>
+                      <button className="icon-btn is-plain" style={{ width: 34, height: 34 }} onClick={() => setEditing(s)} aria-label={`Edit ${s.name}`}>
+                        <Pencil size={16} />
+                      </button>
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="adm-rows mobile-only" style={{ paddingBlock: 4 }}>
+          {services.map((s) => (
+            <button key={s.id} className="adm-row" onClick={() => setEditing(s)} style={{ opacity: s.active === false ? 0.55 : 1 }}>
+              <Photo tone={s.tone} src={servicePhoto(s)} sizes="40px" height={40} radius={8} markSize={14} className="style-mini" />
+              <span className="grow stack" style={{ minWidth: 0 }}>
+                <span style={{ fontWeight: 500 }}>
+                  {s.name} {s.active === false && <span className="pill-tag">Hidden</span>}
+                </span>
+                <span className="t-cap muted">
+                  {durationLabel(s.minutes)} · {recent.get(s.id) ?? 0} done in 90 days
+                </span>
+              </span>
+              <span className="tabular" style={{ whiteSpace: "nowrap" }}>
+                {priceText(s)}
+              </span>
+              <Pencil size={15} className="row-chevron" />
+            </button>
+          ))}
+        </div>
+        <div className="adm-card-foot">
+          <span className="adm-meta">Braids, locs and weaves show “from”: length and size are priced at the chair.</span>
+          <button className="adm-link" onClick={() => setResetOpen(true)}>
+            <RotateCcw size={14} /> Reset all prices
+          </button>
+        </div>
+      </section>
 
-      <ServiceSheet service={editing} onClose={() => setEditing(null)} onSaved={(name) => notify("Saved", `${name} is updated on the price list.`)} />
+      <ServiceSheet service={editing} onClose={() => setEditing(null)} />
       <ConfirmSheet
         open={resetOpen}
         onClose={() => setResetOpen(false)}
-        title="Reset every price?"
-        body="Puts the whole menu back to the starting prices and durations. Bookings already made keep the price they were booked at."
+        title="Reset the price list?"
+        body="Every service goes back to its starting name, price and length, and hidden services come back. Bookings already made keep the price they were booked at."
         confirmLabel="Reset prices"
-        danger
         onConfirm={() => {
           desk.resetServices();
           setResetOpen(false);
-          notify("Prices reset", "The menu is back to the starting prices.");
+          notify("Prices reset", "The price list is back to its starting prices.");
         }}
       />
     </AdminPage>
   );
 }
 
-function ServiceSheet({ service, onClose, onSaved }: { service: Service | null; onClose: () => void; onSaved: (name: string) => void }) {
-  const [draft, setDraft] = useState<Service | null>(service);
-  const [error, setError] = useState("");
-  if (service && draft?.id !== service.id) {
-    setDraft(service);
-    setError("");
-  }
-  if (!draft) return <Sheet open={false} onClose={onClose}>{null}</Sheet>;
-
-  const save = () => {
-    const result = desk.saveService(draft.id, {
-      name: draft.name,
-      description: draft.description,
-      price: draft.price,
-      priceFrom: draft.priceFrom,
-      minutes: draft.minutes,
-      repeatWeeks: draft.repeatWeeks,
-      bookable: draft.bookable,
-      active: draft.active,
+function ServiceSheet({ service, onClose }: { service: Service | null; onClose: () => void }) {
+  const notify = useNotify();
+  const [form, setForm] = useState({ name: "", description: "", price: "", minutes: "", repeatWeeks: "", priceFrom: false, bookable: true, featured: false, active: true });
+  const [forId, setForId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  if (service && service.id !== forId) {
+    setForId(service.id);
+    setForm({
+      name: service.name,
+      description: service.description,
+      price: String(service.price),
+      minutes: String(service.minutes),
+      repeatWeeks: String(service.repeatWeeks),
+      priceFrom: Boolean(service.priceFrom),
+      bookable: service.bookable,
+      featured: Boolean(service.featured),
+      active: service.active !== false,
     });
-    if ("error" in result) {
-      setError(result.error);
-      return;
-    }
-    onSaved(result.service.name);
+    setError(null);
+  }
+
+  const close = () => {
+    setForId(null);
     onClose();
   };
 
+  const save = (e: FormEvent) => {
+    e.preventDefault();
+    if (!service) return;
+    if (!form.price.trim()) return setError("Enter a price. Use 0 only for a free service.");
+    const result = desk.saveService(service.id, {
+      name: form.name,
+      description: form.description,
+      price: toNumber(form.price),
+      minutes: Math.round(toNumber(form.minutes)),
+      repeatWeeks: Math.round(toNumber(form.repeatWeeks)),
+      priceFrom: form.priceFrom,
+      bookable: form.bookable,
+      featured: form.featured,
+      active: form.active,
+    });
+    if ("error" in result) return setError(result.error);
+    close();
+    notify("Service saved", `${result.service.name} is now ${priceText(result.service)}.`);
+  };
+
   return (
-    <Sheet open={service !== null} onClose={onClose} title="Edit service">
-      <div className="stack gap-16">
-        <label className="field">
-          <span>Name</span>
-          <input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
-        </label>
-        <label className="field">
-          <span>What's included</span>
-          <textarea rows={2} value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} />
-        </label>
-        <div className="walkin-new">
-          <label className="field">
-            <span>Price (GH₵)</span>
-            <input inputMode="decimal" value={String(draft.price)} onChange={(e) => setDraft({ ...draft, price: Number(e.target.value) || 0 })} />
-          </label>
-          <label className="field">
-            <span>Minutes</span>
-            <input inputMode="numeric" value={String(draft.minutes)} onChange={(e) => setDraft({ ...draft, minutes: Number(e.target.value.replace(/\D/g, "")) || 0 })} />
-          </label>
-        </div>
-        <label className="field">
-          <span>Repeat every (weeks, 0 for never)</span>
-          <input inputMode="numeric" value={String(draft.repeatWeeks)} onChange={(e) => setDraft({ ...draft, repeatWeeks: Number(e.target.value.replace(/\D/g, "")) || 0 })} />
-        </label>
-        <label className="check-row">
-          <input type="checkbox" checked={Boolean(draft.priceFrom)} onChange={(e) => setDraft({ ...draft, priceFrom: e.target.checked })} />
-          <span className="muted">Show as "from" (the final price depends on length or size)</span>
-        </label>
-        <label className="check-row">
-          <input type="checkbox" checked={draft.bookable} onChange={(e) => setDraft({ ...draft, bookable: e.target.checked })} />
-          <span className="muted">Clients can book this online</span>
-        </label>
-        <label className="check-row">
-          <input type="checkbox" checked={draft.active !== false} onChange={(e) => setDraft({ ...draft, active: e.target.checked })} />
-          <span className="muted">Show on the price list</span>
-        </label>
-        {error && (
-          <p className="field-error" role="alert">
-            {error}
-          </p>
-        )}
-        <Button variant="dark" block onClick={save}>
-          Save
-        </Button>
-      </div>
+    <Sheet open={service !== null} onClose={close} title={service ? `Edit ${service.name}` : "Edit service"}>
+      {service && (
+        <form className="stack gap-16" onSubmit={save} noValidate>
+          <div className="field">
+            <label htmlFor="service-name">Name</label>
+            <input id="service-name" value={form.name} maxLength={60} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          </div>
+          <div className="field">
+            <label htmlFor="service-desc">What's included, as clients see it</label>
+            <textarea id="service-desc" rows={3} value={form.description} maxLength={300} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+          </div>
+          <div className="adm-grid adm-grid-2" style={{ gap: 16 }}>
+            <div className="field">
+              <label htmlFor="service-price">Price (GH₵)</label>
+              <input id="service-price" inputMode="decimal" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
+            </div>
+            <div className="field">
+              <label htmlFor="service-minutes">Takes (minutes)</label>
+              <input id="service-minutes" inputMode="numeric" value={form.minutes} onChange={(e) => setForm({ ...form, minutes: e.target.value })} />
+              <span className="hint">How long the chair is booked.</span>
+            </div>
+          </div>
+          <div className="field" style={{ maxWidth: 260 }}>
+            <label htmlFor="service-repeat">Due back after (weeks)</label>
+            <input id="service-repeat" inputMode="numeric" value={form.repeatWeeks} onChange={(e) => setForm({ ...form, repeatWeeks: e.target.value })} />
+            <span className="hint">0 if it has no natural repeat. Drives the “Due back” list.</span>
+          </div>
+          <div className="stack">
+            <label className="check-row">
+              <input type="checkbox" className="cbx" checked={form.priceFrom} onChange={(e) => setForm({ ...form, priceFrom: e.target.checked })} />
+              <span>Show as “from” (length or size changes the price)</span>
+            </label>
+            <label className="check-row">
+              <input type="checkbox" className="cbx" checked={form.bookable} onChange={(e) => setForm({ ...form, bookable: e.target.checked })} />
+              <span>Clients can book it online</span>
+            </label>
+            <label className="check-row">
+              <input type="checkbox" className="cbx" checked={form.active} onChange={(e) => setForm({ ...form, active: e.target.checked })} />
+              <span>Show on the price list</span>
+            </label>
+            <label className="check-row">
+              <input type="checkbox" className="cbx" checked={form.featured} onChange={(e) => setForm({ ...form, featured: e.target.checked })} />
+              <span>Feature on the home page</span>
+            </label>
+          </div>
+          {error && (
+            <p className="adm-form-error" role="alert">
+              {error}
+            </p>
+          )}
+          <p className="t-cap muted">New prices apply to new bookings only. Bookings already made keep their price.</p>
+          <Button variant="dark" block type="submit">
+            Save service
+          </Button>
+        </form>
+      )}
     </Sheet>
   );
 }

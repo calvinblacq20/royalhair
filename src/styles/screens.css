@@ -45,7 +45,7 @@
   bottom: 40px;
   padding: 2px 10px;
   border-radius: var(--r-pill);
-  background: rgba(36, 36, 38, 0.55);
+  background: rgba(28, 23, 25, 0.55);
   color: #fff;
 }
 
@@ -239,7 +239,7 @@
   width: 220px;
   height: 220px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(217, 255, 92, 0.55), rgba(192, 173, 255, 0.25) 55%, transparent 70%);
+  background: radial-gradient(circle, rgba(252, 90, 163, 0.55), rgba(123, 63, 107, 0.25) 55%, transparent 70%);
   filter: blur(10px);
 }
 .balance-card > * { position: relative; z-index: 1; }
@@ -328,7 +328,7 @@
 
 /* ---------- Order detail ---------- */
 .detail-hero { position: relative; margin-top: -60px; margin-inline: calc(var(--gutter) * -1); }
-.detail-hero .scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(36, 36, 38, 0.25) 0%, transparent 35%, transparent 55%, rgba(36, 36, 38, 0.55) 100%); }
+.detail-hero .scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(28, 23, 25, 0.25) 0%, transparent 35%, transparent 55%, rgba(28, 23, 25, 0.55) 100%); }
 .detail-hero h1 { position: absolute; left: 16px; right: 16px; bottom: 36px; color: #fff; font-size: 30px; line-height: 1.15; letter-spacing: -0.03em; }
 .detail-hero .icon-btn { position: absolute; top: 14px; }
 .detail-body {

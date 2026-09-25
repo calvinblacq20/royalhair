@@ -16,6 +16,27 @@ export const STATUS_LABEL: Record<VisitStatus, string> = {
 
 export type BadgeTone = "magenta" | "gold" | "sage" | "plum" | "mist" | "danger" | "wash";
 
+export type VisitStep = { kind: "move"; to: VisitStatus; label: string } | { kind: "pay"; label: string };
+
+/** The one next thing the desk does with a visit. Finishing with money owing means taking it first. */
+export function nextStep(visit: Pick<Visit, "status" | "payments" | "total">): VisitStep | null {
+  const owed = balanceDue(visit);
+  switch (visit.status) {
+    case "requested":
+      return { kind: "move", to: "confirmed", label: "Confirm booking" };
+    case "confirmed":
+      return { kind: "move", to: "arrived", label: "Mark arrived" };
+    case "arrived":
+      return { kind: "move", to: "in-chair", label: "Seat in the chair" };
+    case "in-chair":
+      return owed > 0 ? { kind: "pay", label: `Take ${money(owed)} and finish` } : { kind: "move", to: "done", label: "Finish visit" };
+    case "done":
+      return owed > 0 ? { kind: "pay", label: `Take ${money(owed)}` } : null;
+    default:
+      return null;
+  }
+}
+
 export function paidTotal(visit: Pick<Visit, "payments">): number {
   return visit.payments.reduce((sum, p) => sum + p.amount, 0);
 }

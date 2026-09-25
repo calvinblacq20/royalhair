@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { visibleVisits } from "../lib/checkout";
-import { dayKey, startOfDay } from "../lib/format";
+import { dayKey, localIso, parseLocal, startOfDay } from "../lib/format";
 import { accessOf, accountOf, actions, desk, getAppData, type BookingDraft, type WalkInDraft } from "./store";
 
 /**
@@ -147,6 +147,22 @@ describe("rescheduling", () => {
     expect(actions.reschedule(visit.id, `${DAY}T15:30`, NOW)).toEqual({ error: expect.stringMatching(/just booked/) });
   });
 
+  it("leaves the clean-down gap after a visit before the next online booking", () => {
+    const { visit } = unwrap(actions.book(draft(), NOW));
+    const gap = getAppData().settings.policies.turnaroundMinutes;
+    const end = new Date(parseLocal(visit.start).getTime() + visit.minutes * 60_000);
+    const other = { ...draft().contact, phone: "020 111 2222" };
+    expect(actions.book(draft({ serviceIds: ["s-cut"], start: localIso(end), contact: other }), NOW)).toEqual({ error: expect.stringMatching(/between clients to clean down/) });
+    const later = new Date(end.getTime() + gap * 60_000);
+    expect("error" in actions.book(draft({ serviceIds: ["s-cut"], start: localIso(later), contact: other }), NOW)).toBe(false);
+  });
+
+  it("lets the desk seat someone the moment the chair is free", () => {
+    const { visit } = unwrap(actions.book(draft(), NOW));
+    const end = new Date(parseLocal(visit.start).getTime() + visit.minutes * 60_000);
+    expect("error" in desk.create(walkIn({ staffId: "st-adwoa", start: localIso(end) }), NOW)).toBe(false);
+  });
+
   it("won't let a client move a visit once they have arrived", () => {
     const { visit } = unwrap(actions.book(draft(), NOW));
     unwrap(desk.moveTo(visit.id, "arrived", NOW));
@@ -209,6 +225,13 @@ describe("the desk", () => {
     const { visit } = unwrap(actions.book(draft(), NOW));
     const moved = unwrap(desk.move(visit.id, { branchId: "b-kumasi", staffId: "st-ama" }, NOW));
     expect(moved.visit).toMatchObject({ branchId: "b-kumasi", staffId: "st-ama" });
+  });
+
+  it("won't cancel a visit that is already finished", () => {
+    const { visit } = unwrap(desk.create(walkIn(), NOW));
+    unwrap(desk.recordPayment(visit.id, { amount: 60, method: "cash" }, NOW));
+    unwrap(desk.moveTo(visit.id, "done", NOW));
+    expect(desk.moveTo(visit.id, "cancelled", NOW)).toEqual({ error: expect.stringMatching(/already closed/) });
   });
 
   it("keeps a no-show on the record and releases the slot", () => {

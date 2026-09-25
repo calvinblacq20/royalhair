@@ -16,12 +16,15 @@ export interface AppData {
   settings: SalonSettings;
   session: { customerId: string | null };
   /** What this phone remembers without an account. */
-  device: { contact: import("./types").ContactDetails | null; visitIds: string[]; branchId: string | null };
+  device: { contact: import("./types").ContactDetails | null; visitIds: string[]; branchId: string | null; savedServiceIds: string[] };
   counters: { visit: number; receipt: number };
 }
 
+/** The sample account a demo can log in with (Naa Adjeley: visits, points and a hair record). */
+export const DEMO_ACCOUNT_PHONE = "024 501 2233";
+
 /** Bump whenever the saved shape changes, so an old demo in someone's browser starts fresh. */
-export const SEED_VERSION = 2;
+export const SEED_VERSION = 3;
 
 function defaultStaff(): Staff[] {
   return [
@@ -213,7 +216,7 @@ export function createSeed(now: Date): AppData {
     reviews: defaultReviews(now),
     settings: defaultSettings(),
     session: { customerId: null },
-    device: { contact: null, visitIds: [], branchId: null },
+    device: { contact: null, visitIds: [], branchId: null, savedServiceIds: [] },
     counters: { visit: 1000 + visits.length, receipt: counters.receipt },
   };
 }

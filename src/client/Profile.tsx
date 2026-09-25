@@ -1,255 +1,294 @@
-import { LayoutDashboard, LogOut, MapPin, RotateCcw, ShieldCheck, Smartphone, Star } from "lucide-react";
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Avatar, SectionHead } from "../components/Bits";
+import { CalendarDays, ChevronRight, Globe, Heart, LayoutDashboard, LifeBuoy, LogOut, MapPin, MessageCircle, ReceiptText, RotateCcw, Search, Smartphone, Sparkles, UserRound } from "lucide-react";
+import { motion } from "motion/react";
+import { useState, type ReactNode } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { AccountSheet, FindVisitSheet } from "../components/AccountSheets";
+import { Avatar, Skeleton, useSkeleton } from "../components/Bits";
 import { Button } from "../components/Button";
 import { useNotify } from "../components/Notify";
 import { Sheet } from "../components/Sheet";
-import { branchById, SALON } from "../data/business";
+import { SALON } from "../data/business";
 import { accessOf, accountOf, actions, useAppData } from "../data/store";
-import { CODE_MESSAGE, visibleVisits } from "../lib/checkout";
-import { formatGhPhone, normalizeGhPhone } from "../lib/contact";
+import type { Customer } from "../data/types";
+import { amountDue, visibleVisits } from "../lib/checkout";
+import { formatGhPhone, whatsappLink } from "../lib/contact";
 import { fmtDate, money } from "../lib/format";
-import { paidTotal } from "../lib/visits";
+import { isActive } from "../lib/visits";
+import { enter } from "../motion";
 
 export function Profile() {
+  const loading = useSkeleton(500);
+  const account = accountOf(useAppData());
+
+  if (loading) {
+    return (
+      <main className="screen is-narrow" aria-busy="true">
+        <div className="between" style={{ paddingTop: 28 }}>
+          <div className="stack gap-8 grow">
+            <Skeleton w="60%" h={30} />
+            <Skeleton w="30%" h={14} />
+          </div>
+          <Skeleton w={64} h={64} r={999} />
+        </div>
+        <Skeleton h={150} r={12} style={{ marginTop: 24 }} />
+        <Skeleton h={110} r={8} style={{ marginTop: 16 }} />
+        <Skeleton h={300} r={8} style={{ marginTop: 16 }} />
+      </main>
+    );
+  }
+  return account ? <AccountProfile account={account} /> : <GuestProfile />;
+}
+
+/* ---------------- No account (the default) ---------------- */
+
+function GuestProfile() {
   const data = useAppData();
   const notify = useNotify();
-  const account = accountOf(data);
-  const [signInOpen, setSignInOpen] = useState(false);
-  const [resetOpen, setResetOpen] = useState(false);
-
-  const visits = visibleVisits(data.visits, accessOf(data));
-  const spent = visits.reduce((sum, v) => sum + paidTotal(v), 0);
-  const favourite = account?.hair?.preferredBranchId ? branchById(account.hair.preferredBranchId) : data.device.branchId ? branchById(data.device.branchId) : undefined;
+  const [sheet, setSheet] = useState<"login" | "create" | "find" | "device" | null>(null);
+  const remembered = data.device.contact;
+  const onPhone = visibleVisits(data.visits, accessOf(data));
 
   return (
-    <main className="screen">
-      <h1 className="t-h1 page-title">Profile</h1>
+    <main className="screen is-narrow">
+      <div className="profile-grid">
+        <div className="profile-left">
+          <motion.header className="between" style={{ paddingTop: 28 }} {...enter(16)}>
+            <div className="stack gap-4">
+              <h1 className="t-h1">{remembered ? `Hi ${remembered.name.split(" ")[0]}` : "Hi there"}</h1>
+              <p className="muted">You can book without an account.</p>
+            </div>
+            <span className="avatar is-soft" style={{ width: 64, height: 64 }} aria-hidden="true">
+              <UserRound size={28} strokeWidth={1.6} />
+            </span>
+          </motion.header>
 
-      {account ? (
-        <section className="card card-pad account-card stack gap-12">
-          <div className="inline gap-12">
-            <Avatar name={account.name} size={52} />
-            <div className="stack gap-4">
-              <p className="t-title">{account.name}</p>
-              <p className="muted t-cap">
-                {formatGhPhone(account.phone)} · member since {fmtDate(new Date(account.memberSince))}
-              </p>
+          <motion.section className="account-card" style={{ marginTop: 24 }} {...enter(24, 0.05)}>
+            <p className="t-title">Save your visits (optional)</p>
+            <p className="muted">Log in with your WhatsApp number to see every visit, your receipts and loyalty points on any phone. No password.</p>
+            <div className="account-card-actions">
+              <Button variant="magenta" size="sm" onClick={() => setSheet("create")}>
+                Create account
+              </Button>
+              <Button variant="ghost-dark" size="sm" onClick={() => setSheet("login")}>
+                Log in
+              </Button>
             </div>
-          </div>
-          <div className="stat-row">
-            <div className="stack gap-4">
-              <span className="subtle t-cap">Points</span>
-              <span className="t-title tabular">{account.points}</span>
-            </div>
-            <div className="stack gap-4">
-              <span className="subtle t-cap">Visits</span>
-              <span className="t-title tabular">{visits.length}</span>
-            </div>
-            <div className="stack gap-4">
-              <span className="subtle t-cap">Spent</span>
-              <span className="t-title tabular">{money(spent)}</span>
-            </div>
-          </div>
-          <div className="account-card-actions">
+          </motion.section>
+        </div>
+
+        <div className="profile-right">
+          <motion.nav className="card list-card" style={{ marginTop: 16 }} aria-label="Visits" {...enter(24, 0.1)}>
+            <MenuRow icon={<Search size={20} strokeWidth={1.6} />} label="Find my booking" note="Use your booking number and WhatsApp number" onClick={() => setSheet("find")} />
+            <MenuRow icon={<CalendarDays size={20} strokeWidth={1.6} />} label="Visits on this phone" note={onPhone.length ? `${onPhone.length} ${onPhone.length === 1 ? "visit" : "visits"}` : "None yet"} to="/visits" />
+            <MenuRow icon={<Heart size={20} strokeWidth={1.6} />} label="Saved services" to="/explore?saved=1" />
+            <MenuRow icon={<MapPin size={20} strokeWidth={1.6} />} label="Branches and opening hours" to="/branches" />
+            {remembered && <MenuRow icon={<Smartphone size={20} strokeWidth={1.6} />} label="Details on this phone" note={formatGhPhone(remembered.phone)} onClick={() => setSheet("device")} />}
+          </motion.nav>
+
+          <nav className="card list-card" style={{ marginTop: 16 }} aria-label="Help">
+            <MenuRow icon={<MessageCircle size={20} strokeWidth={1.6} />} label="Chat with the salon" href={SALON.whatsappBusiness} />
+            <MenuRow icon={<LifeBuoy size={20} strokeWidth={1.6} />} label="Support" href={whatsappLink(SALON.phone, `Hi ${SALON.name}, I need help with the app.`)} />
+            <MenuRow icon={<Globe size={20} strokeWidth={1.6} />} label="English (Ghana)" />
+          </nav>
+
+          <DemoSession />
+        </div>
+      </div>
+
+      <AccountSheet open={sheet === "login" || sheet === "create"} onClose={() => setSheet(null)} mode={sheet === "create" ? "create" : "login"} defaultName={remembered?.name} defaultPhone={remembered?.phone} />
+      <FindVisitSheet open={sheet === "find"} onClose={() => setSheet(null)} />
+
+      <Sheet open={sheet === "device"} onClose={() => setSheet(null)} title="Details on this phone">
+        {remembered && (
+          <div className="stack gap-16">
+            <p className="muted">Saved when you ticked "Remember me on this phone", so booking fills itself in.</p>
+            <DetailsList
+              rows={[
+                ["Name", remembered.name],
+                ["WhatsApp", formatGhPhone(remembered.phone)],
+                ["Email", remembered.email],
+                ["Town or area", remembered.area],
+              ]}
+            />
             <Button
-              size="sm"
-              icon={<LogOut size={15} />}
+              block
               onClick={() => {
-                actions.logOut();
-                notify("Signed out", "Your visits stay safe in your account.");
+                actions.forgetDevice();
+                setSheet(null);
+                notify("Phone cleared", "Your details and visit list are removed from this phone. The salon still has your bookings.");
               }}
             >
-              Sign out
+              Forget this phone
             </Button>
           </div>
-        </section>
-      ) : (
-        <section className="card card-pad stack gap-12">
-          <p className="t-title">Keep your visits on any phone</p>
-          <p className="muted">
-            Sign in with your WhatsApp number. No password. Your bookings, receipts and points follow you,
-            and your stylist's notes are there next time.
-          </p>
-          <div>
-            <Button variant="dark" icon={<Smartphone size={16} />} onClick={() => setSignInOpen(true)}>
-              Sign in with WhatsApp
-            </Button>
-          </div>
-        </section>
-      )}
+        )}
+      </Sheet>
+    </main>
+  );
+}
 
-      <section className="section">
-        <SectionHead title="Your salon" />
-        <div className="card list-card">
-          <Link className="row" to="/branches">
-            <span className="row-icon" aria-hidden="true">
-              <MapPin size={18} strokeWidth={1.8} />
-            </span>
-            <span className="grow stack gap-4">
-              <span>{favourite ? favourite.name : "Branches & hours"}</span>
-              <span className="subtle t-cap">{favourite ? favourite.address : "Addresses, hours and numbers"}</span>
-            </span>
-          </Link>
-          <a className="row" href={SALON.instagram} target="_blank" rel="noreferrer">
-            <span className="row-icon" aria-hidden="true">
-              <Star size={18} strokeWidth={1.8} />
-            </span>
-            <span className="grow stack gap-4">
-              <span>Follow our work</span>
-              <span className="subtle t-cap">Instagram @royalhair_gh</span>
-            </span>
-          </a>
+/* ---------------- Logged in ---------------- */
+
+function AccountProfile({ account }: { account: Customer }) {
+  const data = useAppData();
+  const notify = useNotify();
+  const navigate = useNavigate();
+  const [detailsOpen, setDetailsOpen] = useState(false);
+
+  // Only this account's own visits, not ones looked up on this phone for someone else.
+  const mine = data.visits.filter((v) => v.customerId === account.id);
+  const owing = mine.filter((v) => isActive(v) && amountDue(v).amount > 0);
+  const totalDue = owing.reduce((sum, v) => sum + amountDue(v).amount, 0);
+
+  return (
+    <main className="screen is-narrow">
+      <div className="profile-grid">
+        <div className="profile-left">
+          <motion.header className="between" style={{ paddingTop: 28 }} {...enter(16)}>
+            <div className="stack gap-4">
+              <h1 className="t-h1">{account.name}</h1>
+              <p className="muted">Client since {fmtDate(new Date(account.memberSince))}</p>
+            </div>
+            <Avatar name={account.name} size={64} />
+          </motion.header>
+
+          <motion.section className="balance-card" style={{ marginTop: 24 }} {...enter(24, 0.05)}>
+            <p className="t-cap" style={{ color: "var(--white-75)" }}>
+              {totalDue > 0 ? "Due now" : "Balance"}
+            </p>
+            <p className="t-num">{money(totalDue)}</p>
+            <p className="t-cap" style={{ color: "var(--white-75)" }}>
+              {totalDue > 0 ? `Across ${owing.length === 1 ? "1 visit" : `${owing.length} visits`}` : "You're all paid up"}
+            </p>
+            <div className="inline" style={{ gap: 8, marginTop: 10 }}>
+              {owing[0] && (
+                <Button variant="magenta" size="sm" onClick={() => navigate(`/visits/${owing[0]?.id}`)}>
+                  Pay now
+                </Button>
+              )}
+              <span className="inline t-cap" style={{ color: "var(--magenta)", gap: 4 }}>
+                <Sparkles size={13} /> {account.points} points
+              </span>
+            </div>
+          </motion.section>
         </div>
-      </section>
 
-      <section className="section">
-        <SectionHead title="This phone" />
-        <div className="card list-card">
-          <button
-            className="row"
-            onClick={() => {
-              actions.forgetDevice();
-              notify("Forgotten", "Your details and bookings are no longer saved on this phone.");
-            }}
-          >
-            <span className="row-icon" aria-hidden="true">
-              <ShieldCheck size={18} strokeWidth={1.8} />
-            </span>
-            <span className="grow stack gap-4">
-              <span>Forget this phone</span>
-              <span className="subtle t-cap">Clears saved details. Nothing is deleted from the salon's records.</span>
-            </span>
-          </button>
+        <div className="profile-right">
+          <motion.nav className="card list-card" style={{ marginTop: 16 }} aria-label="Account" {...enter(24, 0.15)}>
+            <MenuRow icon={<UserRound size={20} strokeWidth={1.6} />} label="Your details" onClick={() => setDetailsOpen(true)} />
+            <MenuRow icon={<Heart size={20} strokeWidth={1.6} />} label="Saved services" to="/explore?saved=1" />
+            <MenuRow icon={<MessageCircle size={20} strokeWidth={1.6} />} label="Messages" href={SALON.whatsappBusiness} />
+            <MenuRow icon={<CalendarDays size={20} strokeWidth={1.6} />} label="My visits" to="/visits" />
+            <MenuRow icon={<ReceiptText size={20} strokeWidth={1.6} />} label="Receipts" to="/visits?tab=receipts" />
+            <MenuRow icon={<MapPin size={20} strokeWidth={1.6} />} label="Branches and opening hours" to="/branches" />
+          </motion.nav>
+
+          <nav className="card list-card" style={{ marginTop: 16 }} aria-label="Help">
+            <MenuRow icon={<LifeBuoy size={20} strokeWidth={1.6} />} label="Support" href={whatsappLink(SALON.phone, `Hi ${SALON.name}, I need help with the app.`)} />
+            <MenuRow icon={<Globe size={20} strokeWidth={1.6} />} label="English (Ghana)" />
+          </nav>
+
+          <DemoSession
+            extra={
+              <MenuRow
+                icon={<LogOut size={20} strokeWidth={1.6} />}
+                label="Log out"
+                onClick={() => {
+                  actions.logOut();
+                  notify("Logged out", "Your visits and receipts stay in your account. Log in again to see them.");
+                }}
+              />
+            }
+          />
         </div>
-      </section>
+      </div>
 
-      <section className="section">
-        <SectionHead title="Demo" />
-        <div className="card list-card">
-          <Link className="row" to="/admin">
-            <span className="row-icon" aria-hidden="true">
-              <LayoutDashboard size={18} strokeWidth={1.8} />
-            </span>
-            <span className="grow stack gap-4">
-              <span>Open the salon side</span>
-              <span className="subtle t-cap">What the front desk and the owner see</span>
-            </span>
-          </Link>
-          <button className="row" onClick={() => setResetOpen(true)}>
-            <span className="row-icon" aria-hidden="true">
-              <RotateCcw size={18} strokeWidth={1.8} />
-            </span>
-            <span className="grow stack gap-4">
-              <span>Reset demo data</span>
-              <span className="subtle t-cap">Puts every booking, price and client back to the start</span>
-            </span>
-          </button>
-        </div>
-      </section>
-
-      <SignInSheet open={signInOpen} onClose={() => setSignInOpen(false)} notify={notify} />
-
-      <Sheet open={resetOpen} onClose={() => setResetOpen(false)} title="Reset the demo?">
-        <div className="stack gap-12">
-          <p className="muted">This clears everything you've changed and loads the sample salon again.</p>
-          <Button
-            variant="danger"
-            block
-            onClick={() => {
-              actions.resetDemo();
-              setResetOpen(false);
-              notify("Demo reset", "Everything is back to the starting data.");
-            }}
-          >
-            Reset
-          </Button>
+      <Sheet open={detailsOpen} onClose={() => setDetailsOpen(false)} title="Your details">
+        <div className="stack gap-16">
+          <DetailsList
+            rows={[
+              ["Name", account.name],
+              ["WhatsApp", formatGhPhone(account.phone)],
+              ["Email", account.email],
+              ["Town or area", account.area],
+              ["Client since", fmtDate(new Date(account.memberSince))],
+            ]}
+          />
+          <p className="t-cap subtle">Your details update each time you book.</p>
         </div>
       </Sheet>
     </main>
   );
 }
 
-function SignInSheet({ open, onClose, notify }: { open: boolean; onClose: () => void; notify: (title: string, body: string) => void }) {
-  const [phone, setPhone] = useState("");
-  const [name, setName] = useState("");
-  const [code, setCode] = useState("");
-  const [stage, setStage] = useState<"phone" | "code">("phone");
-  const [error, setError] = useState("");
+/* ---------------- Shared ---------------- */
 
-  const close = () => {
-    onClose();
-    setStage("phone");
-    setCode("");
-    setError("");
-  };
-
-  const send = () => {
-    if (!normalizeGhPhone(phone)) {
-      setError("Enter a Ghana WhatsApp number, like 024 123 4567.");
-      return;
-    }
-    const sent = actions.sendCode(phone);
-    notify("Your sign-in code", `Code ${sent}. It expires in 10 minutes.`);
-    setStage("code");
-    setError("");
-  };
-
-  const verify = () => {
-    const result = actions.checkCode(phone, code);
-    if (result !== "ok") {
-      setError(CODE_MESSAGE[result]);
-      return;
-    }
-    const existing = actions.logIn(phone);
-    const account = existing ?? actions.createAccount({ name: name.trim() || "Royal Hair client", phone });
-    notify(existing ? "Welcome back" : "Account created", `Signed in as ${account.name}.`);
-    close();
-  };
-
+function DemoSession({ extra }: { extra?: ReactNode }) {
+  const notify = useNotify();
   return (
-    <Sheet open={open} onClose={close} title="Sign in with WhatsApp">
-      {stage === "phone" ? (
-        <div className="stack gap-12">
-          <label className="field">
-            <span>WhatsApp number</span>
-            <input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" autoComplete="tel" placeholder="024 123 4567" />
-          </label>
-          <label className="field">
-            <span>Your name (only needed the first time)</span>
-            <input value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
-          </label>
-          {error && (
-            <p className="field-error" role="alert">
-              {error}
-            </p>
-          )}
-          <Button variant="dark" block onClick={send}>
-            Send me a code
-          </Button>
-          <p className="subtle t-cap">Demo tip: 024 501 2233 is a sample client with visits and a hair record.</p>
-        </div>
-      ) : (
-        <div className="stack gap-12">
-          <p className="muted">Enter the 6-digit code we sent to {formatGhPhone(phone)}.</p>
-          <label className="field">
-            <span>Code</span>
-            <input value={code} onChange={(e) => setCode(e.target.value)} inputMode="numeric" maxLength={6} autoComplete="one-time-code" />
-          </label>
-          {error && (
-            <p className="field-error" role="alert">
-              {error}
-            </p>
-          )}
-          <Button variant="dark" block onClick={verify}>
-            Sign in
-          </Button>
-          <button className="link hit" onClick={send}>
-            Send a new code
-          </button>
-        </div>
-      )}
-    </Sheet>
+    <>
+      <nav className="card list-card" style={{ marginTop: 16 }} aria-label="Session">
+        <MenuRow icon={<LayoutDashboard size={20} strokeWidth={1.6} />} label="Open the salon side" note="What the front desk and the owner see" to="/admin" />
+        <MenuRow
+          icon={<RotateCcw size={20} strokeWidth={1.6} />}
+          label="Reset demo data"
+          onClick={() => {
+            actions.resetDemo();
+            notify("Demo reset", "Sample visits are back and you're logged out.");
+          }}
+        />
+        {extra}
+      </nav>
+      <p className="t-cap subtle mobile-only" style={{ textAlign: "center", marginTop: 20 }}>
+        {SALON.name} · Demo build
+      </p>
+    </>
   );
+}
+
+function DetailsList({ rows }: { rows: [string, string][] }) {
+  return (
+    <dl className="stack gap-16">
+      {rows
+        .filter(([, v]) => v)
+        .map(([k, v]) => (
+          <div key={k} className="stack">
+            <dt className="subtle t-cap">{k}</dt>
+            <dd className="t-title">{v}</dd>
+          </div>
+        ))}
+    </dl>
+  );
+}
+
+function MenuRow({ icon, label, note, to, href, onClick }: { icon: ReactNode; label: string; note?: string; to?: string; href?: string; onClick?: () => void }) {
+  const inner = (
+    <>
+      <span style={{ display: "grid", placeItems: "center", width: 28 }}>{icon}</span>
+      <span className="grow stack">
+        <span>{label}</span>
+        {note && <span className="subtle t-cap">{note}</span>}
+      </span>
+      {(to || href || onClick) && <ChevronRight size={18} className="row-chevron" />}
+    </>
+  );
+  if (to)
+    return (
+      <Link to={to} className="row">
+        {inner}
+      </Link>
+    );
+  if (href)
+    return (
+      <a href={href} target="_blank" rel="noreferrer" className="row">
+        {inner}
+      </a>
+    );
+  if (onClick)
+    return (
+      <button onClick={onClick} className="row">
+        {inner}
+      </button>
+    );
+  return <div className="row">{inner}</div>;
 }

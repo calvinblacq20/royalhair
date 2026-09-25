@@ -137,7 +137,7 @@
 .closing {
   margin-inline: calc(var(--gutter) * -1 + 8px);
   border-radius: var(--r-24);
-  background: #242426;
+  background: #1c1719;
   color: #fff;
 }
 .bento { margin-top: 64px; padding: 48px 16px 56px; overflow: hidden; }
@@ -166,10 +166,10 @@
   color: var(--ink);
 }
 .bento-card.is-tall { min-height: 400px; }
-.bento-card.is-steel { background: linear-gradient(180deg, #5d7590 0%, #93a4bd 50%, #e7ecf3 100%); }
-.bento-card.is-steel-rev { background: linear-gradient(180deg, #e7ecf3 0%, #93a4bd 55%, #5d7590 100%); }
-.bento-card.is-white { background: linear-gradient(180deg, #ffffff 0%, #ebeff5 100%); }
-.bento-card.is-blush { background: linear-gradient(180deg, #ffffff 0%, #fae9e6 100%); }
+.bento-card.is-steel { background: linear-gradient(180deg, #8f2c5e 0%, #d97aa6 50%, #fbe8f0 100%); }
+.bento-card.is-steel-rev { background: linear-gradient(180deg, #fbe8f0 0%, #d97aa6 55%, #8f2c5e 100%); }
+.bento-card.is-white { background: linear-gradient(180deg, #ffffff 0%, #f4efe9 100%); }
+.bento-card.is-blush { background: linear-gradient(180deg, #ffffff 0%, #fbe3ec 100%); }
 .bento-card-head { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
 .bento-card-head h3 { font-size: 24px; line-height: 1.25; letter-spacing: -0.03em; }
 .bento-card-head p { max-width: 32ch; font-size: 13px; color: var(--ink-75); }
@@ -198,7 +198,7 @@
   padding: 0 15px 0 11px;
   border-radius: var(--r-pill);
   /* No backdrop blur: these rotate and move on every scroll frame. */
-  background: rgba(53, 54, 59, 0.9);
+  background: rgba(42, 35, 38, 0.9);
   color: #fff;
   font-size: 14px;
   white-space: nowrap;
@@ -220,7 +220,7 @@
   box-shadow: var(--sh-float);
 }
 
-.momo-card { margin-top: auto; padding: 12px; border-radius: var(--r-20); background: #242426; color: #fff; box-shadow: var(--sh-float); }
+.momo-card { margin-top: auto; padding: 12px; border-radius: var(--r-20); background: #1c1719; color: #fff; box-shadow: var(--sh-float); }
 .momo-amount {
   margin-top: 10px;
   padding: 16px 10px;
@@ -234,11 +234,11 @@
 }
 .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--magenta); animation: live-pulse 2s ease-out infinite; }
 @keyframes live-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(217, 255, 92, 0.55); }
-  100% { box-shadow: 0 0 0 10px rgba(217, 255, 92, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(252, 90, 163, 0.55); }
+  100% { box-shadow: 0 0 0 10px rgba(252, 90, 163, 0); }
 }
 .receipt-mini { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-radius: var(--r-16); background: #fff; box-shadow: var(--sh-soft); }
-.pill-lime { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 10px; border-radius: var(--r-pill); background: var(--magenta); font-size: 12px; }
+.pill-pink { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 10px; border-radius: var(--r-pill); background: var(--magenta); font-size: 12px; }
 
 .track-list { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
 .track-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: var(--r-16); background: #fff; box-shadow: var(--sh-soft); font-size: 14px; }
@@ -275,7 +275,7 @@
   margin-top: 10px;
   padding: 8px 10px;
   border-radius: var(--r-12);
-  background: #242426;
+  background: #1c1719;
   color: #fff;
   font-size: 13px;
 }
@@ -301,7 +301,7 @@
   height: clamp(220px, 44vw, 460px);
   overflow: hidden;
   border-radius: var(--r-24) var(--r-24) 0 0;
-  background: #4d4f57;
+  background: #4a3f44;
   box-shadow: 0 -24px 60px rgba(0, 0, 0, 0.35);
   transform-origin: 50% 100%;
   will-change: transform;
@@ -367,7 +367,7 @@
 
   .highlights { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
-  .desk-nav.is-dark { background: rgba(36, 36, 38, 0.72); color: #fff; }
+  .desk-nav.is-dark { background: rgba(28, 23, 25, 0.72); color: #fff; }
   .desk-nav.is-dark .desk-brand { color: #fff; }
   .desk-nav.is-dark .desk-link { color: rgba(255, 255, 255, 0.72); }
   .desk-nav.is-dark .desk-link:hover,

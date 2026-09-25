@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowUpRight, Bell, CalendarClock, CalendarDays, ChartLine, ChevronRight, Ellipsis, LayoutDashboard, MapPin, Plus, Scissors, Search, Settings, Star, UserRoundCheck, Users, WifiOff } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Bell, CalendarClock, CalendarDays, ChartLine, ChevronRight, Ellipsis, LayoutDashboard, MapPin, Plus, Scissors, Search, Settings, Star, UserRoundCheck, Users, Wallet, WifiOff } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState, type ComponentType, type FormEvent, type ReactNode } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -41,9 +41,15 @@ const GROUPS: { label: string; items: NavItem[] }[] = [
     ],
   },
   {
-    label: "Business",
+    label: "Money",
     items: [
+      { to: "/admin/payments", label: "Payments", icon: Wallet },
       { to: "/admin/reports", label: "Reports", icon: ChartLine },
+    ],
+  },
+  {
+    label: "Salon",
+    items: [
       { to: "/admin/services", label: "Services & prices", icon: Scissors },
       { to: "/admin/settings", label: "Settings", icon: Settings },
     ],

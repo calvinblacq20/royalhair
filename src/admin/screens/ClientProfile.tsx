@@ -1,213 +1,274 @@
-import { AlertTriangle, CalendarPlus, MessageCircle, Phone } from "lucide-react";
-import { useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { Avatar, Badge } from "../../components/Bits";
+import { AlertTriangle, ChevronRight, CircleAlert, Inbox, MessageCircle, NotebookPen, Phone, ReceiptText } from "lucide-react";
+import { motion } from "motion/react";
+import { useMemo, useState } from "react";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Avatar } from "../../components/Bits";
 import { Button, Cta } from "../../components/Button";
 import { useNotify } from "../../components/Notify";
 import { BRANCHES, branchById } from "../../data/business";
-import { serviceById } from "../../data/catalog";
 import { desk, useAppData } from "../../data/store";
-import type { HairRecord } from "../../data/types";
+import type { Customer, HairRecord } from "../../data/types";
+import { clientRows } from "../../lib/clients";
 import { formatGhPhone, telLink, whatsappLink } from "../../lib/contact";
-import { daysBetween, fmtDate, fmtTime, money, parseLocal } from "../../lib/format";
-import { badgeFor, paidTotal } from "../../lib/visits";
-import { useNow } from "../hooks";
-import { VisitSheet } from "../sheets";
+import { dayKey, daysBetween, fmtDate, fmtTime, money, parseLocal, plural } from "../../lib/format";
+import { METHOD_LABEL, SOURCE_LABEL } from "../../lib/trends";
+import { enter } from "../../motion";
+import { useFirstVisit, useNow } from "../hooks";
 import { AdminPage, EmptyState } from "../Shell";
+import { useVisitActions, VisitCard } from "../visitCard";
 
-const SOURCE_LABEL = { instagram: "Instagram", tiktok: "TikTok", walkin: "Walked in", referral: "Referral", app: "Booked online" } as const;
+type Tab = "visits" | "hair" | "payments";
+const TABS: { id: Tab; label: string }[] = [
+  { id: "visits", label: "Visits" },
+  { id: "hair", label: "Hair record" },
+  { id: "payments", label: "Payments" },
+];
 
-/** Everything the stylist should know before the client sits down. */
 export function ClientProfile() {
-  const { clientId = "" } = useParams();
+  const { clientId } = useParams();
   const data = useAppData();
-  const navigate = useNavigate();
-  const notify = useNotify();
-  const now = useNow();
   const customer = data.customers.find((c) => c.id === clientId);
-  const [record, setRecord] = useState<HairRecord>(() => ({ ...customer?.hair }));
-  const [dirty, setDirty] = useState(false);
-  const [error, setError] = useState("");
-  const [openId, setOpenId] = useState<string | null>(null);
-
   if (!customer) {
     return (
-      <AdminPage title="Client" back={{ to: "/admin/clients", label: "Clients" }}>
-        <EmptyState icon={<AlertTriangle size={24} />} title="Client not found" body="They may have been removed, or the link is wrong." />
+      <AdminPage title="Client not found" back={{ to: "/admin/clients", label: "Clients" }}>
+        <EmptyState icon={<CircleAlert size={22} />} title="We couldn't find that client" body="They may have been removed when the demo was reset." action={<Link to="/admin/clients" className="btn btn-dark">All clients</Link>} />
       </AdminPage>
     );
   }
+  return <ProfileView customer={customer} />;
+}
 
+function ProfileView({ customer }: { customer: Customer }) {
+  const data = useAppData();
+  const now = useNow();
+  const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
+  const tab = TABS.find((t) => t.id === params.get("tab"))?.id ?? "visits";
+  const first = useFirstVisit(`client:${customer.id}`);
+  const actions = useVisitActions();
+  const row = useMemo(() => clientRows([customer], data.visits, now)[0]!, [customer, data.visits, now]);
   const visits = data.visits.filter((v) => v.customerId === customer.id).sort((a, b) => b.start.localeCompare(a.start));
-  const spent = visits.reduce((sum, v) => sum + paidTotal(v), 0);
-  const noShows = visits.filter((v) => v.status === "no-show").length;
-  const branchStaff = data.staff.filter((s) => s.active);
-  const relaxerDays = record.lastRelaxer ? daysBetween(parseLocal(record.lastRelaxer), now) : null;
-
-  const edit = (patch: Partial<HairRecord>) => {
-    setRecord((current) => ({ ...current, ...patch }));
-    setDirty(true);
-  };
-
-  const save = () => {
-    const result = desk.saveHairRecord(customer.id, record);
-    if ("error" in result) {
-      setError(result.error);
-      return;
-    }
-    setError("");
-    setDirty(false);
-    notify("Saved", `${customer.name}'s hair record is up to date.`);
-  };
+  const payments = visits.flatMap((v) => v.payments.map((p) => ({ visit: v, payment: p }))).sort((a, b) => b.payment.at.localeCompare(a.payment.at));
+  const firstName = customer.name.split(" ")[0];
+  const allergy = customer.hair?.allergies;
 
   return (
     <AdminPage
       title={customer.name}
       back={{ to: "/admin/clients", label: "Clients" }}
-      status={`${formatGhPhone(customer.phone)} · client since ${fmtDate(new Date(customer.memberSince))}`}
-      actions={<Cta onClick={() => navigate(`/admin/walk-in?client=${customer.id}`)}>Book them in</Cta>}
+      status={
+        <>
+          <span className="tabular">{formatGhPhone(customer.phone)}</span> · {customer.area || "Area not given"} · {SOURCE_LABEL[customer.source ?? "app"]}
+        </>
+      }
+      actions={
+        <>
+          <a className="btn btn-outline" href={whatsappLink(customer.phone, `Hello ${firstName}, it's Royal Hair.`)} target="_blank" rel="noreferrer">
+            <MessageCircle size={16} /> WhatsApp
+          </a>
+          <a className="btn btn-outline" href={telLink(customer.phone)}>
+            <Phone size={16} /> Call
+          </a>
+          <Cta onClick={() => navigate(`/admin/walk-in?client=${customer.id}`)}>Book them in</Cta>
+          {/* On phones the header CTA gives way to the tab bar, which doesn't know who this is. */}
+          <Link className="btn btn-dark mobile-only" to={`/admin/walk-in?client=${customer.id}`}>
+            Book them in
+          </Link>
+        </>
+      }
     >
-      <div className="client-layout">
-        <div className="adm-stack">
-          <section className="adm-card">
-            <div className="adm-card-body client-head">
-              <Avatar name={customer.name} size={56} />
-              <div className="client-stats">
-                <div className="stack gap-4">
-                  <span className="adm-meta">Visits</span>
-                  <span className="t-title tabular">{visits.length}</span>
-                </div>
-                <div className="stack gap-4">
-                  <span className="adm-meta">Spent</span>
-                  <span className="t-title tabular">{money(spent)}</span>
-                </div>
-                <div className="stack gap-4">
-                  <span className="adm-meta">No-shows</span>
-                  <span className={`t-title tabular ${noShows ? "is-overdue" : ""}`}>{noShows}</span>
-                </div>
-                <div className="stack gap-4">
-                  <span className="adm-meta">Found us</span>
-                  <span className="t-title">{customer.source ? SOURCE_LABEL[customer.source] : "—"}</span>
-                </div>
-              </div>
-            </div>
-            <div className="adm-card-foot">
-              <a className="btn btn-outline btn-sm" href={whatsappLink(customer.phone, `Hello ${customer.name.split(" ")[0]}, `)} target="_blank" rel="noreferrer">
-                <MessageCircle size={15} strokeWidth={1.8} /> WhatsApp
-              </a>
-              <a className="btn btn-outline btn-sm" href={telLink(customer.phone)}>
-                <Phone size={15} strokeWidth={1.8} /> Call
-              </a>
-            </div>
-          </section>
+      {allergy && (
+        <p className="allergy-alert" role="alert" style={{ marginBottom: 16, maxWidth: 860 }}>
+          <AlertTriangle size={18} strokeWidth={2} />
+          <span>
+            <b>Check before any relaxer, colour or treatment:</b> {allergy}
+          </span>
+        </p>
+      )}
 
-          <section className="adm-card">
-            <div className="adm-card-head">
-              <h2 className="t-title">Visits</h2>
-              <Link className="adm-link" to={`/admin/walk-in?client=${customer.id}`}>
-                <CalendarPlus size={15} /> New
-              </Link>
+      <motion.section className="adm-card" style={{ marginBottom: 16 }} {...(first ? enter(16) : {})} aria-label="Summary">
+        <div className="adm-card-body" style={{ paddingTop: 20, display: "flex", gap: 20, alignItems: "center", flexWrap: "wrap" }}>
+          <Avatar name={customer.name} size={56} />
+          <dl className="adm-kv-grid is-4" style={{ flex: 1, minWidth: 260 }}>
+            <div>
+              <dt>Paid to date</dt>
+              <dd className="big">{money(row.spend)}</dd>
             </div>
-            {visits.length === 0 ? (
-              <p className="muted" style={{ padding: "0 20px 20px" }}>
-                No visits yet.
-              </p>
-            ) : (
-              <div className="adm-rows">
-                {visits.map((visit) => {
-                  const badge = badgeFor(visit, now);
-                  const start = parseLocal(visit.start);
-                  return (
-                    <button key={visit.id} className="adm-row" onClick={() => setOpenId(visit.id)}>
-                      <span className="adm-row-time tabular">{fmtDate(start)}</span>
-                      <span className="grow stack gap-4" style={{ minWidth: 0 }}>
-                        <span className="truncate">{visit.items.map((i) => serviceById(i.serviceId)?.name).join(", ")}</span>
-                        <span className="muted t-cap truncate">
-                          {fmtTime(start)} · {data.staff.find((s) => s.id === visit.staffId)?.name} · {branchById(visit.branchId)?.name}
-                        </span>
-                      </span>
-                      <Badge tone={badge.tone}>{badge.label}</Badge>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </section>
+            <div>
+              <dt>Visits</dt>
+              <dd className="big">{row.visits}</dd>
+            </div>
+            <div>
+              <dt>Balance owed</dt>
+              <dd className="big" style={row.owed > 0 ? { color: "var(--warning-ink)" } : undefined}>
+                {money(row.owed)}
+              </dd>
+            </div>
+            <div>
+              <dt>Client since</dt>
+              <dd className="big">{fmtDate(new Date(customer.memberSince)).replace(/^\d+ /, "")}</dd>
+            </div>
+          </dl>
         </div>
+        {row.dueBack && (
+          <p className="adm-card-foot t-cap" style={{ justifyContent: "flex-start" }}>
+            Due back for their usual service {row.dueBack <= dayKey(now) ? "since" : "on"} {fmtDate(parseLocal(row.dueBack))}. Nothing is booked yet.
+          </p>
+        )}
+      </motion.section>
 
-        <section className="adm-card hair-record" aria-labelledby="hair-record">
-          <div className="adm-card-head">
-            <h2 id="hair-record" className="t-title">
-              Hair record
-            </h2>
-            <span className="adm-meta">Staff only</span>
+      <div className="segmented" role="tablist" aria-label="Client details" style={{ maxWidth: 520, marginBottom: 16 }}>
+        {TABS.map((t) => (
+          <button key={t.id} role="tab" aria-selected={tab === t.id} className={tab === t.id ? "is-active" : ""} onClick={() => setParams(t.id === "visits" ? {} : { tab: t.id }, { replace: true })}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div role="tabpanel" aria-label={TABS.find((t) => t.id === tab)?.label}>
+        {tab === "visits" &&
+          (visits.length ? (
+            <div className="res-list" style={{ maxWidth: 860 }}>
+              {visits.map((v) => (
+                <VisitCard key={v.id} visit={v} customer={customer} now={now} onOpen={actions.open} onStep={actions.run} showClient={false} />
+              ))}
+            </div>
+          ) : (
+            <div className="adm-card">
+              <EmptyState icon={<Inbox size={22} />} title="No visits yet" action={<Link className="btn btn-dark" to={`/admin/walk-in?client=${customer.id}`}>Book them in</Link>} />
+            </div>
+          ))}
+
+        {tab === "hair" && <HairRecordCard key={customer.id} customer={customer} />}
+
+        {tab === "payments" &&
+          (payments.length ? (
+            <section className="adm-card" style={{ maxWidth: 860 }}>
+              <div className="adm-rows" style={{ paddingBlock: 4 }}>
+                {payments.map(({ visit, payment }) => (
+                  <Link key={payment.id} to={`/admin/visits/${visit.id}/receipts/${payment.id}`} className="adm-row">
+                    <span className="row-icon">
+                      <ReceiptText size={18} strokeWidth={1.7} />
+                    </span>
+                    <span className="grow stack">
+                      <span>
+                        {visit.number} · {METHOD_LABEL[payment.method]}
+                      </span>
+                      <span className="t-cap muted">
+                        <span className="t-mono">{payment.receiptNo}</span> · {fmtDate(new Date(payment.at))}, {fmtTime(new Date(payment.at))}
+                      </span>
+                    </span>
+                    <span className="tabular" style={{ fontWeight: 500 }}>
+                      {money(payment.amount)}
+                    </span>
+                    <ChevronRight size={18} className="row-chevron" />
+                  </Link>
+                ))}
+              </div>
+            </section>
+          ) : (
+            <div className="adm-card">
+              <EmptyState icon={<ReceiptText size={22} />} title="No payments yet" />
+            </div>
+          ))}
+      </div>
+      {actions.sheets}
+    </AdminPage>
+  );
+}
+
+/** What the stylist needs before the client sits down. Only staff see it. */
+function HairRecordCard({ customer }: { customer: Customer }) {
+  const data = useAppData();
+  const notify = useNotify();
+  const now = useNow();
+  const saved = customer.hair ?? {};
+  const [record, setRecord] = useState<HairRecord>(() => ({ ...saved }));
+  const [error, setError] = useState<string | null>(null);
+  // Follow the saved record when it changes elsewhere (a new booking can add an allergy),
+  // so a save from this form never writes back an older version.
+  const savedKey = JSON.stringify(saved);
+  const [base, setBase] = useState(savedKey);
+  if (base !== savedKey) {
+    setBase(savedKey);
+    setRecord({ ...saved });
+  }
+  const keys: (keyof HairRecord)[] = ["allergies", "colourFormula", "lastRelaxer", "preferredStaffId", "preferredBranchId", "notes"];
+  const dirty = keys.some((k) => (record[k] ?? "").trim() !== (saved[k] ?? ""));
+  const relaxerWeeks = record.lastRelaxer ? Math.floor(daysBetween(parseLocal(record.lastRelaxer), now) / 7) : null;
+  const edit = (patch: Partial<HairRecord>) => setRecord((current) => ({ ...current, ...patch }));
+
+  const save = () => {
+    const result = desk.saveHairRecord(customer.id, record);
+    if ("error" in result) return setError(result.error);
+    setError(null);
+    notify("Hair record saved", `${customer.name}'s record is up to date.`);
+  };
+
+  return (
+    <section className="adm-card" style={{ maxWidth: 760 }} aria-labelledby="hair-record">
+      <div className="adm-card-head">
+        <h2 id="hair-record" className="inline" style={{ gap: 8 }}>
+          <NotebookPen size={17} /> Hair record
+        </h2>
+        <span className="adm-meta">Only staff see this</span>
+      </div>
+      <div className="adm-card-body stack gap-16">
+        <div className="field">
+          <label htmlFor="hair-allergies">Allergies and sensitivities</label>
+          <textarea id="hair-allergies" className={record.allergies ? "has-allergy" : ""} rows={2} maxLength={400} value={record.allergies ?? ""} onChange={(e) => edit({ allergies: e.target.value })} placeholder="Anything to check before a relaxer, colour or treatment" />
+        </div>
+        <div className="settings-grid">
+          <div className="field">
+            <label htmlFor="hair-formula">Colour formula</label>
+            <input id="hair-formula" maxLength={120} value={record.colourFormula ?? ""} onChange={(e) => edit({ colourFormula: e.target.value })} placeholder="e.g. 6N + 20 vol, 35 min" />
           </div>
-          <div className="adm-card-body stack gap-16">
-            <label className="field">
-              <span>Allergies and sensitivities</span>
-              <textarea
-                className={record.allergies ? "has-allergy" : ""}
-                value={record.allergies ?? ""}
-                onChange={(e) => edit({ allergies: e.target.value })}
-                rows={2}
-                placeholder="Anything to check before a relaxer, colour or treatment"
-              />
-            </label>
-            <label className="field">
-              <span>Colour formula</span>
-              <input value={record.colourFormula ?? ""} onChange={(e) => edit({ colourFormula: e.target.value })} placeholder="e.g. 6N + 20 vol, 35 min" />
-            </label>
-            <label className="field">
-              <span>
-                Last relaxer
-                {relaxerDays !== null && relaxerDays >= 0 && <span className="subtle"> · {Math.floor(relaxerDays / 7)} weeks ago</span>}
-              </span>
-              <input type="date" value={record.lastRelaxer ?? ""} onChange={(e) => edit({ lastRelaxer: e.target.value })} />
-            </label>
-            <label className="field">
-              <span>Prefers</span>
-              <select value={record.preferredStaffId ?? ""} onChange={(e) => edit({ preferredStaffId: e.target.value })}>
-                <option value="">Anyone</option>
-                {branchStaff.map((s) => (
+          <div className="field">
+            <label htmlFor="hair-relaxer">Last relaxer</label>
+            <input id="hair-relaxer" type="date" value={record.lastRelaxer ?? ""} onChange={(e) => edit({ lastRelaxer: e.target.value })} />
+            {relaxerWeeks !== null && relaxerWeeks >= 0 && <span className="hint">{plural(relaxerWeeks, "week")} ago</span>}
+          </div>
+          <div className="field">
+            <label htmlFor="hair-staff">Likes to see</label>
+            <select id="hair-staff" value={record.preferredStaffId ?? ""} onChange={(e) => edit({ preferredStaffId: e.target.value })}>
+              <option value="">Anyone free</option>
+              {data.staff
+                .filter((s) => s.active)
+                .map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name} · {branchById(s.branchId)?.name}
                   </option>
                 ))}
-              </select>
-            </label>
-            <label className="field">
-              <span>Usual branch</span>
-              <select value={record.preferredBranchId ?? ""} onChange={(e) => edit({ preferredBranchId: e.target.value })}>
-                <option value="">Any</option>
-                {BRANCHES.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="field">
-              <span>Notes</span>
-              <textarea
-                value={record.notes ?? ""}
-                onChange={(e) => edit({ notes: e.target.value })}
-                rows={4}
-                placeholder="Texture, what worked, what didn't, how they like to be spoken to…"
-              />
-            </label>
-            {error && (
-              <p className="field-error" role="alert">
-                {error}
-              </p>
-            )}
-            <Button variant="dark" block onClick={save} disabled={!dirty}>
-              {dirty ? "Save hair record" : "Saved"}
-            </Button>
+            </select>
           </div>
-        </section>
+          <div className="field">
+            <label htmlFor="hair-branch">Usual branch</label>
+            <select id="hair-branch" value={record.preferredBranchId ?? ""} onChange={(e) => edit({ preferredBranchId: e.target.value })}>
+              <option value="">Any</option>
+              {BRANCHES.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div className="field">
+          <label htmlFor="hair-notes">Notes</label>
+          <textarea id="hair-notes" rows={5} maxLength={4000} value={record.notes ?? ""} onChange={(e) => edit({ notes: e.target.value })} placeholder={`Notes for ${customer.name.split(" ")[0]}: texture, scalp, what worked and what didn't, how they like their edges…`} />
+        </div>
+        <div className="between">
+          <span className="t-cap muted">{plural((record.notes ?? "").length, "character")} of 4,000</span>
+          <Button variant="dark" disabled={!dirty} onClick={save}>
+            Save hair record
+          </Button>
+        </div>
+        {error && (
+          <p className="adm-form-error" role="alert">
+            {error}
+          </p>
+        )}
       </div>
-
-      <VisitSheet visitId={openId} open={openId !== null} onClose={() => setOpenId(null)} />
-    </AdminPage>
+    </section>
   );
 }

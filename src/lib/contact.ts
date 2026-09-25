@@ -65,7 +65,7 @@ export function icsFile(event: CalendarEvent, uid: string, now: Date): string {
   return [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Franz Qlodin//Studio//EN",
+    "PRODID:-//Royal Hair//Salon//EN",
     "BEGIN:VEVENT",
     `UID:${uid}`,
     `DTSTAMP:${stamp(now)}`,

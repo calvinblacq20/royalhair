@@ -8,6 +8,14 @@ export interface SalonSettings {
   salon: {
     name: string;
     tagline: string;
+    /** The line under the name on the home page, e.g. "Barbershop · Salon · Spa". */
+    category: string;
+    about: string;
+    /** Where the branches are, in a few words. */
+    area: string;
+    /** Sample figures for the demo, shown with a "Demo" tag. */
+    rating: number;
+    reviewCount: number;
     /** The central WhatsApp number in the bio. Branch numbers live on each branch. */
     phone: string;
     landline: string;
@@ -100,7 +108,13 @@ export function defaultSettings(): SalonSettings {
   return {
     salon: {
       name: "Royal Hair",
-      tagline: "Hair, nails and spa",
+      tagline: "Barbershop, salon and spa",
+      category: "Barbershop · Salon · Spa",
+      about:
+        "Royal Hair Salon & Spa is a barbershop, hair salon, nail bar and spa under one roof, with branches at West Hills Mall, Airport Residential and Kumasi. Men come for cuts, fades and beard work; women for braids, weaves, relaxers, colour and silk presses; everyone for nails, pedicures and massage. Kids are welcome at every branch.",
+      area: "West Hills Mall · Airport · Kumasi",
+      rating: 4.8,
+      reviewCount: 96,
       phone: "024 613 6708",
       landline: "030 290 9560",
       email: "hello@royalhair.gh",
@@ -151,3 +165,33 @@ export function branchById(id: string): Branch | undefined {
 export function defaultBranch(): Branch {
   return BRANCHES.find((b) => b.active) ?? BRANCHES[0]!;
 }
+
+/** Stills from the salon's own TikTok posts (docs/photo-sources.md), for the home page carousel. */
+export const SALON_PHOTOS = [
+  { src: "/photos/barber-kid-cut.webp", alt: "A barber giving a young client a haircut", position: "center 30%" },
+  { src: "/photos/ombre-curls.webp", alt: "Long ombré curls on a client in the chair", position: "center 35%" },
+  { src: "/photos/barbershop-pole.webp", alt: "The barber pole on the salon's red wall", position: "center 40%" },
+  { src: "/photos/nail-bar.webp", alt: "Nail technicians at work at the nail bar", position: "center 45%" },
+  { src: "/photos/salon-floor.webp", alt: "A client on the Royal Hair salon floor, red walls and mirrors behind", position: "center 30%" },
+] as const;
+
+/** The lookbook strip on the home page: one photo per kind of work, each opening that part of the menu. */
+export const LOOKBOOK = [
+  { id: "fade", label: "Fades", group: "barbering", src: "/photos/fade-detail.webp" },
+  { id: "silk", label: "Silk press", group: "hair", src: "/photos/silk-press.webp" },
+  { id: "nails", label: "Nails", group: "nails", src: "/photos/nails-red.webp" },
+  { id: "colour", label: "Colour", group: "hair", src: "/photos/blonde-cut.webp" },
+  { id: "pedicure", label: "Pedicure", group: "nails", src: "/photos/pedicure.webp" },
+  { id: "locs", label: "Locs", group: "hair", src: "/photos/locs.webp" },
+  { id: "kids", label: "Kids", group: "kids", src: "/photos/kids-braids.webp" },
+  { id: "art", label: "Nail art", group: "nails", src: "/photos/nails-floral.webp" },
+] as const;
+
+export const SALON_FEATURES = [
+  { icon: "scissors", label: "Barbers and stylists under one roof" },
+  { icon: "users", label: "Kids welcome at every branch" },
+  { icon: "map", label: "Three branches: West Hills Mall, Airport and Kumasi" },
+  { icon: "wallet", label: "MoMo, card and cash" },
+  { icon: "calendar", label: "Book online, on WhatsApp, or walk in" },
+  { icon: "sparkles", label: "Every price published before you book" },
+] as const;

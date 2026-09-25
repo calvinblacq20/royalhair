@@ -365,6 +365,11 @@ export function applyServices(services: Service[]) {
   SERVICES = services;
 }
 
+/** The service's own photo, or its part of the menu's photo when it has none. */
+export function servicePhoto(service: Pick<Service, "photo" | "group">): string {
+  return service.photo ?? GROUP_PHOTO[service.group].src;
+}
+
 export function serviceById(id: string): Service | undefined {
   return SERVICES.find((s) => s.id === id);
 }

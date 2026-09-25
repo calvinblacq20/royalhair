@@ -106,7 +106,7 @@
   background: var(--ground);
   color: var(--ink);
 }
-.row-icon.is-lime { background: var(--magenta); }
+.row-icon.is-pink { background: var(--magenta); }
 .row-chevron { color: var(--ink-62); flex: none; }
 button.row:active, a.row:active { background: var(--ink-06); }
 
@@ -152,7 +152,7 @@ button.row:active, a.row:active { background: var(--ink-06); }
 .btn-danger { background: var(--danger); color: #fff; }
 .btn-ghost-dark { background: rgba(255, 255, 255, 0.12); color: #fff; }
 
-/* Makro primary CTA: dark with a lime arrow square; swaps on hover */
+/* Makro primary CTA: dark with a pink arrow square; swaps on hover */
 .btn-cta {
   height: 52px;
   padding: 6px 22px 6px 6px;
@@ -273,11 +273,11 @@ button.row:active, a.row:active { background: var(--ink-06); }
 .sk {
   display: block;
   border-radius: var(--r-8);
-  background: linear-gradient(90deg, rgba(36, 36, 38, 0.06) 0%, rgba(36, 36, 38, 0.1) 40%, rgba(36, 36, 38, 0.06) 80%);
+  background: linear-gradient(90deg, rgba(28, 23, 25, 0.06) 0%, rgba(28, 23, 25, 0.1) 40%, rgba(28, 23, 25, 0.06) 80%);
   background-size: 300% 100%;
   animation: shimmer 1.3s linear infinite;
 }
-.sk.on-white { background-color: #f3f5f8; }
+.sk.on-white { background-color: #f8f4f0; }
 @keyframes shimmer {
   from { background-position: 100% 0; }
   to { background-position: -200% 0; }
@@ -311,7 +311,7 @@ button.row:active, a.row:active { background: var(--ink-06); }
   z-index: -1;
   background:
     radial-gradient(120% 90% at 18% 8%, rgba(255, 255, 255, 0.65), transparent 55%),
-    repeating-linear-gradient(135deg, rgba(36, 36, 38, 0.045) 0 2px, transparent 2px 9px),
+    repeating-linear-gradient(135deg, rgba(28, 23, 25, 0.045) 0 2px, transparent 2px 9px),
     linear-gradient(160deg, var(--tone-a), var(--tone-b));
 }
 .photo .photo-mark { opacity: 0.16; }
@@ -332,7 +332,7 @@ button.row:active, a.row:active { background: var(--ink-06); }
 .photo.tone-ink .photo-mark { opacity: 0.22; }
 /* Real photos: a quiet shimmer shows until the image has loaded, then it fades in. */
 .photo.has-img::before {
-  background: linear-gradient(90deg, #e2e6ed 0%, #eef1f6 40%, #e2e6ed 80%);
+  background: linear-gradient(90deg, #ece4dc 0%, #f6f1ec 40%, #ece4dc 80%);
   background-size: 300% 100%;
   animation: shimmer 1.3s linear infinite;
 }
@@ -639,9 +639,9 @@ button.row:active, a.row:active { background: var(--ink-06); }
 
 .success { background: var(--charcoal); color: #fff; }
 .success-blob { position: absolute; border-radius: 50%; }
-.success::after { content: ""; position: absolute; inset: 0; background: radial-gradient(60% 45% at 50% 50%, rgba(36, 36, 38, 0.35), transparent 70%); }
+.success::after { content: ""; position: absolute; inset: 0; background: radial-gradient(60% 45% at 50% 50%, rgba(28, 23, 25, 0.35), transparent 70%); }
 .success-content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 18px; text-align: center; padding: 24px; }
-.success-content h1 { font-size: 44px; line-height: 1.1; letter-spacing: -0.04em; max-width: 9ch; text-shadow: 0 2px 24px rgba(36, 36, 38, 0.35); }
+.success-content h1 { font-size: 44px; line-height: 1.1; letter-spacing: -0.04em; max-width: 9ch; text-shadow: 0 2px 24px rgba(28, 23, 25, 0.35); }
 
 /* Launch screen: strictly black and white, matching the logo. */
 .splash { background: #000; color: #fff; }
@@ -686,7 +686,7 @@ button.row:active, a.row:active { background: var(--ink-06); }
   height: 168px;
   overflow: hidden;
   border-radius: var(--r-16) var(--r-16) 0 0;
-  background: #e4e9f1;
+  background: #efe7df;
 }
 .map svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .map-pin { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; }

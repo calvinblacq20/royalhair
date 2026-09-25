@@ -12,7 +12,7 @@ import type { PaymentMethod, Visit, VisitStatus } from "../data/types";
 import { whatsappLink } from "../lib/contact";
 import { fmtDayShort, fmtTime, money, parseLocal } from "../lib/format";
 import { durationLabel } from "../lib/pricing";
-import { badgeFor, balanceDue, isActive, paidTotal } from "../lib/visits";
+import { badgeFor, balanceDue, nextStep, paidTotal } from "../lib/visits";
 
 const METHODS: { id: PaymentMethod; label: string }[] = [
   { id: "cash", label: "Cash" },
@@ -20,14 +20,6 @@ const METHODS: { id: PaymentMethod; label: string }[] = [
   { id: "card", label: "Card" },
   { id: "bank", label: "Bank" },
 ];
-
-/** The one next step for each stage of the day, so the desk never hunts for the right button. */
-const NEXT: Partial<Record<VisitStatus, { to: VisitStatus; label: string }>> = {
-  requested: { to: "confirmed", label: "Confirm booking" },
-  confirmed: { to: "arrived", label: "Mark arrived" },
-  arrived: { to: "in-chair", label: "Seat in the chair" },
-  "in-chair": { to: "done", label: "Finish visit" },
-};
 
 export function VisitSheet({ visitId, open, onClose }: { visitId: string | null; open: boolean; onClose: () => void }) {
   const data = useAppData();
@@ -43,7 +35,8 @@ export function VisitSheet({ visitId, open, onClose }: { visitId: string | null;
   const start = parseLocal(visit.start);
   const badge = badgeFor(visit, new Date());
   const balance = balanceDue(visit);
-  const next = NEXT[visit.status];
+  // The one next step for this stage of the day, so the desk never hunts for the right button.
+  const next = nextStep(visit);
   const allergy = customer?.hair?.allergies;
 
   const move = (status: VisitStatus, opts?: { allowOwing?: boolean }) => {
@@ -137,12 +130,12 @@ export function VisitSheet({ visitId, open, onClose }: { visitId: string | null;
           )}
 
           <div className="stack gap-8">
-            {next && isActive(visit) && (
-              <Button variant="dark" block onClick={() => move(next.to)} icon={<ArrowRight size={16} />}>
+            {next && (
+              <Button variant="dark" block onClick={() => (next.kind === "move" ? move(next.to) : setPayOpen(true))} icon={next.kind === "move" ? <ArrowRight size={16} /> : <Banknote size={16} />}>
                 {next.label}
               </Button>
             )}
-            {balance > 0 && visit.status !== "cancelled" && (
+            {balance > 0 && next?.kind !== "pay" && visit.status !== "cancelled" && (
               <Button block onClick={() => setPayOpen(true)} icon={<Banknote size={16} />}>
                 Take payment · {money(balance)}
               </Button>
@@ -191,6 +184,16 @@ export function PaymentSheet({ visit, open, onClose, onPaid }: { visit: Visit; o
   const [method, setMethod] = useState<PaymentMethod>("cash");
   const [reference, setReference] = useState("");
   const [error, setError] = useState("");
+  const [wasOpen, setWasOpen] = useState(open);
+  // Start from the current balance each time the sheet opens, not the balance when it first mounted.
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) {
+      setAmount(String(balance));
+      setReference("");
+      setError("");
+    }
+  }
 
   const submit = () => {
     const value = Number(amount);

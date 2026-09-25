@@ -101,14 +101,15 @@ function itemsFor(serviceIds: string[], idFor: (i: number) => string): VisitItem
 /**
  * The guard that makes double-booking impossible. Every write that places a visit in the
  * diary runs this against the live state, not against the slot list the screen was showing.
+ * Online bookings pass the clean-down gap; the desk can see the chair and may seat sooner.
  */
-function guardSlot(args: { branchId: string; staffId: string; start: string; minutes: number; now: Date; ignoreVisitId?: string }): string | null {
+function guardSlot(args: { branchId: string; staffId: string; start: string; minutes: number; now: Date; ignoreVisitId?: string; gapMinutes?: number }): string | null {
   const branch = state.branches.find((b) => b.id === args.branchId);
   if (!branch) return "We couldn't find that branch.";
   const staff = state.staff.find((s) => s.id === args.staffId);
   if (!staff) return "We couldn't find that team member.";
   if (staff.branchId !== branch.id) return `${staff.name} doesn't work at ${branch.name}.`;
-  return validateSlot({ branch, staff, start: parseLocal(args.start), minutes: args.minutes, visits: state.visits, now: args.now, ignoreVisitId: args.ignoreVisitId });
+  return validateSlot({ branch, staff, start: parseLocal(args.start), minutes: args.minutes, visits: state.visits, now: args.now, ignoreVisitId: args.ignoreVisitId, gapMinutes: args.gapMinutes });
 }
 
 /** Adds what the client told us about allergies to their hair record, keeping anything already there. */
@@ -191,7 +192,7 @@ export const actions = {
     if ("error" in items) return items;
     const minutes = items.reduce((sum, item) => sum + item.minutes, 0);
 
-    const clash = guardSlot({ branchId: draft.branchId, staffId: draft.staffId, start: draft.start, minutes, now });
+    const clash = guardSlot({ branchId: draft.branchId, staffId: draft.staffId, start: draft.start, minutes, now, gapMinutes: state.settings.policies.turnaroundMinutes });
     if (clash) return { error: clash };
 
     const upserted = upsertCustomer(state.customers, draft.contact, { customerId: state.session.customerId, now, newId: () => newId("c") });
@@ -237,7 +238,7 @@ export const actions = {
       // Guests keep the booking on this phone. Account bookings live in the account, so logging out hides them.
       device: state.session.customerId
         ? { ...state.device, branchId: draft.branchId }
-        : { contact: draft.remember ? draft.contact : null, visitIds: [visit.id, ...state.device.visitIds], branchId: draft.branchId },
+        : { ...state.device, contact: draft.remember ? draft.contact : null, visitIds: [visit.id, ...state.device.visitIds], branchId: draft.branchId },
       counters: { visit: state.counters.visit + 1, receipt: receiptCounter },
     });
     return { visit, payment };
@@ -262,7 +263,7 @@ export const actions = {
     const visit = state.visits.find((v) => v.id === visitId);
     if (!visit) return { error: "We couldn't find that booking." };
     if (!canCancel(visit)) return { error: "This visit can no longer be moved online. Call the branch and we'll sort it." };
-    const clash = guardSlot({ branchId: visit.branchId, staffId: visit.staffId, start, minutes: visit.minutes, now, ignoreVisitId: visit.id });
+    const clash = guardSlot({ branchId: visit.branchId, staffId: visit.staffId, start, minutes: visit.minutes, now, ignoreVisitId: visit.id, gapMinutes: state.settings.policies.turnaroundMinutes });
     if (clash) return { error: clash };
     const next = { ...visit, start };
     commit({ ...state, visits: state.visits.map((v) => (v.id === visitId ? next : v)) });
@@ -341,7 +342,14 @@ export const actions = {
 
   /** Clears the remembered details and bookings listed on this phone. Nothing is deleted from the salon's records. */
   forgetDevice() {
-    commit({ ...state, device: { contact: null, visitIds: [], branchId: state.device.branchId } });
+    commit({ ...state, device: { ...state.device, contact: null, visitIds: [] } });
+  },
+
+  /** Hearts a service on this phone, or un-hearts it. */
+  toggleSaved(serviceId: string) {
+    const saved = state.device.savedServiceIds;
+    const savedServiceIds = saved.includes(serviceId) ? saved.filter((id) => id !== serviceId) : [...saved, serviceId];
+    commit({ ...state, device: { ...state.device, savedServiceIds } });
   },
 
   resetDemo() {
@@ -406,7 +414,7 @@ export const desk = {
     const visit = findVisitById(visitId);
     if (!visit) return { error: "We couldn't find that booking." };
     if (visit.status === status) return { visit };
-    if (!isActive(visit) && status !== "cancelled") return { error: "This visit is already closed." };
+    if (!isActive(visit)) return { error: "This visit is already closed." };
     if (status === "done" && balanceDue(visit) > 0 && !opts.allowOwing) return { error: "This visit still has a balance to settle." };
     const next = withStatus(visit, status, now);
     commit({ ...state, visits: updateVisit(visitId, () => next) });

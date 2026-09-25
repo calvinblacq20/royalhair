@@ -78,6 +78,16 @@ describe("findClash", () => {
   it("lets a visit be rescheduled without clashing with itself", () => {
     expect(findClash([booked], "st1", span, "v1")).toBeNull();
   });
+
+  it("keeps the clean-down gap free after a visit, and after the new one", () => {
+    const at = (start: string, end: string) => ({ start: parseLocal(start), end: parseLocal(end) });
+    // Starting the moment the last client leaves is fine with no gap, not with ten minutes.
+    expect(findClash([booked], "st1", at("2026-01-05T11:00", "2026-01-05T11:30"))).toBeNull();
+    expect(findClash([booked], "st1", at("2026-01-05T11:00", "2026-01-05T11:30"), undefined, 10)?.id).toBe("v1");
+    expect(findClash([booked], "st1", at("2026-01-05T11:10", "2026-01-05T11:40"), undefined, 10)).toBeNull();
+    // Ending right as the booked client arrives leaves no time to clean down either.
+    expect(findClash([booked], "st1", at("2026-01-05T09:30", "2026-01-05T10:00"), undefined, 10)?.id).toBe("v1");
+  });
 });
 
 describe("openingOn", () => {
@@ -126,6 +136,15 @@ describe("slotsFor", () => {
 
   it("returns nothing for an empty basket", () => {
     expect(slotsFor({ ...args, minutes: 0 }, { leadMinutes: 0 })).toEqual([]);
+  });
+
+  it("leaves the clean-down gap around existing visits", () => {
+    const visits = [visit({ id: "v1", staffId: "st1", start: "2026-01-05T10:00", minutes: 60 })];
+    const slots = slotsFor({ ...args, minutes: 30, visits }, { leadMinutes: 0, stepMinutes: 15, gapMinutes: 15 });
+    expect(slots).toContain("2026-01-05T09:15");
+    expect(slots).not.toContain("2026-01-05T09:30");
+    expect(slots).not.toContain("2026-01-05T11:00");
+    expect(slots).toContain("2026-01-05T11:15");
   });
 });
 
@@ -207,5 +226,12 @@ describe("validateSlot", () => {
 
   it("rejects an empty basket", () => {
     expect(validateSlot({ ...base, minutes: 0, start: parseLocal("2026-01-05T10:00") })).toMatch(/at least one service/);
+  });
+
+  it("says when the only problem is the clean-down gap", () => {
+    const visits = [visit({ id: "v1", staffId: "st1", start: "2026-01-05T09:00", minutes: 60 })];
+    const start = parseLocal("2026-01-05T10:00");
+    expect(validateSlot({ ...base, visits, start })).toBeNull();
+    expect(validateSlot({ ...base, visits, start, gapMinutes: 10 })).toMatch(/10 minutes between clients/);
   });
 });
