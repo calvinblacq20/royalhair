@@ -4,9 +4,9 @@ For each original:
   1. trim black letterbox bands left by TikTok,
   2. clean heavy JPEG noise where needed and sharpen adaptively (softer photos get more),
   3. lift local contrast slightly so hair texture and nail detail read clearly,
-  4. export three WebP files: name-sm.webp (480px, thumbnails and grids on data),
-     name.webp (up to 1080px) and name@2x.webp (full resolution, up to 3840px, 4K)
-     for large and retina screens.
+  4. export WebP files: name-sm.webp (480px, thumbnails and grids on data),
+     name.webp (up to 1080px), name-md.webp (1600px, sharp phone screens without the
+     full download) and name@2x.webp (full resolution, up to 3840px, 4K) for large screens.
 
 Writes src/data/photo-manifest.json with the real pixel widths so <img srcset>
 can let each device pick the right file.
@@ -30,6 +30,7 @@ MANIFEST = ROOT / "src" / "data" / "photo-manifest.json"
 
 SMALL_WIDTH = 480
 BASE_WIDTH = 1080
+MID_WIDTH = 1600  # a 390px-wide phone at 3x needs ~1170px: this keeps it off the full-size file
 MAX_WIDTH = 3840  # true 4K width for large and retina screens; srcset keeps phones on the 480/1080 files
 
 
@@ -115,15 +116,24 @@ def main() -> None:
             img = enhance(img)
 
         hi = resize_to_width(img, MAX_WIDTH)
+        mid = resize_to_width(img, MID_WIDTH)
         base = resize_to_width(img, BASE_WIDTH)
         small = resize_to_width(img, SMALL_WIDTH)
         cv2.imwrite(str(OUT / f"{name}@2x.webp"), hi, [cv2.IMWRITE_WEBP_QUALITY, 90])
+        has_mid = base.shape[1] < mid.shape[1] < hi.shape[1]
+        if has_mid:
+            cv2.imwrite(str(OUT / f"{name}-md.webp"), mid, [cv2.IMWRITE_WEBP_QUALITY, 86])
+        else:
+            (OUT / f"{name}-md.webp").unlink(missing_ok=True)
         cv2.imwrite(str(OUT / f"{name}.webp"), base, [cv2.IMWRITE_WEBP_QUALITY, 88])
         cv2.imwrite(str(OUT / f"{name}-sm.webp"), small, [cv2.IMWRITE_WEBP_QUALITY, 84])
 
         manifest[name] = {"sm": int(small.shape[1]), "w": int(base.shape[1]), "w2x": int(hi.shape[1]), "h": int(base.shape[0])}
-        sizes = " | ".join(f"{f.stat().st_size // 1024}KB" for f in (OUT / f"{name}-sm.webp", OUT / f"{name}.webp", OUT / f"{name}@2x.webp"))
-        print(f"{name:26s} {small.shape[1]}/{base.shape[1]}/{hi.shape[1]}w  {sizes}")
+        if has_mid:
+            manifest[name]["md"] = int(mid.shape[1])
+        files = [OUT / f"{name}-sm.webp", OUT / f"{name}.webp", *([OUT / f"{name}-md.webp"] if has_mid else []), OUT / f"{name}@2x.webp"]
+        sizes = " | ".join(f"{f.stat().st_size // 1024}KB" for f in files)
+        print(f"{name:26s} {small.shape[1]}/{base.shape[1]}/{mid.shape[1] if has_mid else '-'}/{hi.shape[1]}w  {sizes}")
 
     MANIFEST.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     print(f"manifest: {MANIFEST.relative_to(ROOT)} ({len(manifest)} photos)")

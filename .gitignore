@@ -17,3 +17,6 @@ brand/social/tiktok/
 brand/social/instagram/
 brand/social/frames/
 brand/social/sheets/
+
+# Upscaling model (62 MB, re-download per scripts/upscale_photos.py)
+brand/models/
