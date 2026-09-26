@@ -297,7 +297,7 @@ body:has(.adm) { background: var(--ground); }
 .dd-btn:hover { box-shadow: var(--sh-float); }
 .dd-btn:focus-visible { border-radius: var(--r-pill); outline-offset: 3px; }
 .dd-btn.is-soft { height: 34px; padding: 0 10px 0 14px; background: var(--ground); box-shadow: none; font-size: 13px; }
-.dd-btn.is-soft:hover { background: #ede4dc; }
+.dd-btn.is-soft:hover { background: #e9e9eb; }
 .dd-btn.is-field {
   width: 100%;
   min-height: 44px;
@@ -731,7 +731,7 @@ a.adm-row:hover, button.adm-row:hover { background: var(--ground); }
   resize: vertical;
   outline: none;
 }
-.adm-textarea:focus { background: #ede4dc; }
+.adm-textarea:focus { background: #e9e9eb; }
 .msg-preview { white-space: pre-wrap; padding: 14px 16px; border-radius: var(--r-12) var(--r-12) var(--r-12) 2px; background: var(--magenta-wash); font-size: 14px; line-height: 1.5; }
 .adm-input {
   width: 100%;
@@ -744,7 +744,7 @@ a.adm-row:hover, button.adm-row:hover { background: var(--ground); }
   font-variant-numeric: tabular-nums;
   outline: none;
 }
-.adm-input:focus { background: #ede4dc; }
+.adm-input:focus { background: #e9e9eb; }
 .adm-form-error { font-size: 13px; color: var(--danger); }
 
 /* ---------- Mobile tab bar ---------- */

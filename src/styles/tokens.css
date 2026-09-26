@@ -9,7 +9,7 @@
 :root {
   color-scheme: light;
 
-  --ground: #f4efe9;
+  --ground: #f4f4f5;
   --surface: #ffffff;
   --ink: #1c1719;
   --ink-75: rgba(28, 23, 25, 0.75);
@@ -66,8 +66,8 @@
   --sh-deep: 0 0.81px 0.81px -0.47px rgba(48, 34, 41, 0.19), 0 1.91px 1.91px -0.94px rgba(48, 34, 41, 0.18), 0 3.49px 3.49px -1.41px rgba(48, 34, 41, 0.18), 0 5.79px 5.79px -1.88px rgba(48, 34, 41, 0.17), 0 9.36px 9.36px -2.34px rgba(48, 34, 41, 0.16), 0 15.32px 15.32px -2.81px rgba(48, 34, 41, 0.15), 0 26.38px 26.38px -3.28px rgba(48, 34, 41, 0.12), 0 48px 48px -3.75px rgba(48, 34, 41, 0.06);
   --sh-chip: 0 4px 8px rgba(0, 0, 0, 0.25);
 
-  --glow: radial-gradient(134% 100% at 50% 0%, #ffffff 0%, #f4efe9 100%);
-  --fade: linear-gradient(#ffffff 0%, #f4efe9 100%);
+  --glow: radial-gradient(134% 100% at 50% 0%, #ffffff 0%, #f4f4f5 100%);
+  --fade: linear-gradient(#ffffff 0%, #f4f4f5 100%);
 
   --z-sticky: 10;
   --z-tabbar: 20;

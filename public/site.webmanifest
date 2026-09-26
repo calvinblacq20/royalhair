@@ -4,7 +4,7 @@
   "description": "Barbershop, salon and spa in Accra and Kumasi. See prices and book online.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f4efe9",
+  "background_color": "#f4f4f5",
   "theme_color": "#1c1719",
   "icons": [
     { "src": "/brand/app-icon-180.png", "sizes": "180x180", "type": "image/png" },

@@ -168,7 +168,7 @@
 .bento-card.is-tall { min-height: 400px; }
 .bento-card.is-steel { background: linear-gradient(180deg, #8f2c5e 0%, #d97aa6 50%, #fbe8f0 100%); }
 .bento-card.is-steel-rev { background: linear-gradient(180deg, #fbe8f0 0%, #d97aa6 55%, #8f2c5e 100%); }
-.bento-card.is-white { background: linear-gradient(180deg, #ffffff 0%, #f4efe9 100%); }
+.bento-card.is-white { background: linear-gradient(180deg, #ffffff 0%, #f4f4f5 100%); }
 .bento-card.is-blush { background: linear-gradient(180deg, #ffffff 0%, #fbe3ec 100%); }
 .bento-card-head { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
 .bento-card-head h3 { font-size: 24px; line-height: 1.25; letter-spacing: -0.03em; }

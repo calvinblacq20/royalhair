@@ -19,13 +19,13 @@ export function MapCard({ branch, now = new Date() }: { branch: Branch; now?: Da
     <div className="card" style={{ overflow: "hidden" }}>
       <div className="map" aria-hidden="true">
         <svg viewBox="0 0 400 168" preserveAspectRatio="xMidYMid slice">
-          <rect width="400" height="168" fill="#efe7e0" />
+          <rect width="400" height="168" fill="#ededef" />
           <path d="M-10 120 C 80 100, 140 140, 230 110 S 360 70, 420 90" stroke="#fff" strokeWidth="14" fill="none" />
           <path d="M150 -10 C 170 60, 160 110, 190 180" stroke="#fff" strokeWidth="9" fill="none" />
           <path d="M-10 40 L 420 58" stroke="#fff" strokeWidth="6" fill="none" />
           <path d="M290 -10 L 270 180" stroke="#fff" strokeWidth="5" fill="none" />
-          <rect x="30" y="62" width="70" height="34" rx="6" fill="#e5dad1" />
-          <rect x="220" y="10" width="44" height="30" rx="6" fill="#e5dad1" />
+          <rect x="30" y="62" width="70" height="34" rx="6" fill="#e2e2e5" />
+          <rect x="220" y="10" width="44" height="30" rx="6" fill="#e2e2e5" />
           <rect x="305" y="108" width="80" height="44" rx="6" fill="#dbe5d6" />
           <text x="18" y="114" fontSize="9" fill="#9b8c85" fontFamily="Inter, sans-serif">
             {branch.area}

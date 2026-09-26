@@ -277,7 +277,7 @@ button.row:active, a.row:active { background: var(--ink-06); }
   background-size: 300% 100%;
   animation: shimmer 1.3s linear infinite;
 }
-.sk.on-white { background-color: #f8f4f0; }
+.sk.on-white { background-color: #f5f5f6; }
 @keyframes shimmer {
   from { background-position: 100% 0; }
   to { background-position: -200% 0; }
@@ -315,13 +315,13 @@ button.row:active, a.row:active { background: var(--ink-06); }
     linear-gradient(160deg, var(--tone-a), var(--tone-b));
 }
 .photo .photo-mark { opacity: 0.16; }
-.photo.tone-magenta { --tone-a: #ffc2dd; --tone-b: #f4efe9; }
-.photo.tone-plum { --tone-a: #cfa9c4; --tone-b: #f4efe9; }
+.photo.tone-magenta { --tone-a: #ffc2dd; --tone-b: #f4f4f5; }
+.photo.tone-plum { --tone-a: #cfa9c4; --tone-b: #f4f4f5; }
 .photo.tone-gold { --tone-a: #ead9c4; --tone-b: #f9efd2; }
 .photo.tone-blush { --tone-a: #f7dfe4; --tone-b: #ead9c4; }
-.photo.tone-sage { --tone-a: #b7c9b4; --tone-b: #f4efe9; }
-.photo.tone-mist { --tone-a: #e2d9da; --tone-b: #f4efe9; }
-.photo.tone-champagne { --tone-a: #ead9c4; --tone-b: #f4efe9; }
+.photo.tone-sage { --tone-a: #b7c9b4; --tone-b: #f4f4f5; }
+.photo.tone-mist { --tone-a: #e2d9da; --tone-b: #f4f4f5; }
+.photo.tone-champagne { --tone-a: #ead9c4; --tone-b: #f4f4f5; }
 .photo.tone-ink { --tone-a: #1c1719; --tone-b: #4a3f44; color: #fff; }
 .photo.tone-ink::before {
   background:
@@ -332,7 +332,7 @@ button.row:active, a.row:active { background: var(--ink-06); }
 .photo.tone-ink .photo-mark { opacity: 0.22; }
 /* Real photos: a quiet shimmer shows until the image has loaded, then it fades in. */
 .photo.has-img::before {
-  background: linear-gradient(90deg, #ece4dc 0%, #f6f1ec 40%, #ece4dc 80%);
+  background: linear-gradient(90deg, #ececee 0%, #f6f6f7 40%, #ececee 80%);
   background-size: 300% 100%;
   animation: shimmer 1.3s linear infinite;
 }
@@ -686,7 +686,7 @@ button.row:active, a.row:active { background: var(--ink-06); }
   height: 168px;
   overflow: hidden;
   border-radius: var(--r-16) var(--r-16) 0 0;
-  background: #efe7df;
+  background: #ededef;
 }
 .map svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .map-pin { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; }
