@@ -17,8 +17,13 @@ const BookFlow = lazy(() => import("./client/BookFlow").then((m) => ({ default: 
 const VisitDetail = lazy(() => import("./client/VisitDetail").then((m) => ({ default: m.VisitDetail })));
 const ReceiptPage = lazy(() => import("./client/Receipt").then((m) => ({ default: m.ReceiptPage })));
 const Branches = lazy(() => import("./client/Branches").then((m) => ({ default: m.Branches })));
+const Privacy = lazy(() => import("./client/Legal").then((m) => ({ default: m.Privacy })));
+const Terms = lazy(() => import("./client/Legal").then((m) => ({ default: m.Terms })));
 // The owner side is its own download; clients never fetch it.
-const AdminApp = lazy(() => import("./admin/AdminApp").then((m) => ({ default: m.AdminApp })));
+// Left out of production builds until staff logins exist (src/data/env.ts). The condition is
+// written out here, not imported, so the build can drop the salon side's code entirely.
+const AdminApp =
+  import.meta.env.DEV || import.meta.env.VITE_SALON_SIDE === "on" ? lazy(() => import("./admin/AdminApp").then((m) => ({ default: m.AdminApp }))) : null;
 
 function ScreenFallback() {
   return (
@@ -109,6 +114,8 @@ function ClientApp() {
               <Route path="visits/:visitId" element={<VisitDetail />} />
               <Route path="visits/:visitId/receipts/:paymentId" element={<ReceiptPage />} />
               <Route path="branches" element={<Branches />} />
+              <Route path="privacy" element={<Privacy />} />
+              <Route path="terms" element={<Terms />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
@@ -129,14 +136,16 @@ export function App() {
         <NotifyProvider>
           <Splash />
           <Routes>
-            <Route
-              path="admin/*"
-              element={
-                <Suspense fallback={<AdminFallback />}>
-                  <AdminApp />
-                </Suspense>
-              }
-            />
+            {AdminApp && (
+              <Route
+                path="admin/*"
+                element={
+                  <Suspense fallback={<AdminFallback />}>
+                    <AdminApp />
+                  </Suspense>
+                }
+              />
+            )}
             <Route path="*" element={<ClientApp />} />
           </Routes>
         </NotifyProvider>

@@ -24,7 +24,7 @@ export interface AppData {
 export const DEMO_ACCOUNT_PHONE = "024 501 2233";
 
 /** Bump whenever the saved shape changes, so an old demo in someone's browser starts fresh. */
-export const SEED_VERSION = 4;
+export const SEED_VERSION = 5;
 
 function defaultStaff(): Staff[] {
   return [

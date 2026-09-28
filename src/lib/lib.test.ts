@@ -181,10 +181,21 @@ describe("upsertCustomer", () => {
   const existing: Customer = { id: "c1", name: "Naa", phone: "024 501 2233", email: "naa@gmail.com", area: "Weija", memberSince: "2025-01-01", hasAccount: true, points: 240, hair: { notes: "Fine edges" } };
   const contact = { name: "Naa Adjeley", phone: "+233 24 501 2233", email: "naa@gmail.com", area: "Dansoman" };
 
-  it("updates the one record when the same number books again", () => {
-    const { customers, customer } = upsertCustomer([existing], contact, { now: new Date(), newId: () => "c2" });
+  it("keeps one record when the same number books again, without letting a guest rewrite it", () => {
+    const { customers, customer } = upsertCustomer([existing], { ...contact, name: "Someone Else" }, { now: new Date(), newId: () => "c2" });
     expect(customers).toHaveLength(1);
-    expect(customer.area).toBe("Dansoman");
+    expect(customer).toMatchObject({ id: "c1", name: "Naa", area: "Weija" });
+  });
+
+  it("lets a guest booking fill in details the record is missing", () => {
+    const bare: Customer = { ...existing, email: "", area: "" };
+    const { customer } = upsertCustomer([bare], contact, { now: new Date(), newId: () => "c2" });
+    expect(customer).toMatchObject({ email: "naa@gmail.com", area: "Dansoman", name: "Naa" });
+  });
+
+  it("updates a signed-in client's own details, but a blank email never wipes the saved one", () => {
+    const { customer } = upsertCustomer([existing], { ...contact, email: "" }, { customerId: "c1", now: new Date(), newId: () => "c2" });
+    expect(customer).toMatchObject({ name: "Naa Adjeley", area: "Dansoman", email: "naa@gmail.com" });
   });
 
   it("keeps the account, points and hair record", () => {

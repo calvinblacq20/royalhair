@@ -43,6 +43,10 @@ export const samePhone = (a: string, b: string) => {
 /**
  * Finds the customer by WhatsApp number (or by id when signed in) and updates their details,
  * or creates a new guest record. Keeps account status, points and the hair record.
+ *
+ * A guest is matched on a number nobody has verified, so a guest booking only fills in details
+ * that are missing; it never rewrites a name, email or area already on the record. A signed-in
+ * client updates their own details. A blank optional field never wipes a saved one.
  */
 export function upsertCustomer(
   customers: Customer[],
@@ -52,7 +56,9 @@ export function upsertCustomer(
   const existing = customers.find((c) => (opts.customerId ? c.id === opts.customerId : samePhone(c.phone, contact.phone)));
   const details = { name: contact.name, phone: contact.phone, email: contact.email, area: contact.area };
   if (existing) {
-    const customer = { ...existing, ...details };
+    const verified = Boolean(opts.customerId);
+    const pick = (saved: string, typed: string) => (verified ? typed || saved : saved || typed);
+    const customer = { ...existing, name: pick(existing.name, details.name), email: pick(existing.email, details.email), area: pick(existing.area, details.area) };
     return { customers: customers.map((c) => (c.id === existing.id ? customer : c)), customer };
   }
   const customer: Customer = { id: opts.newId(), ...details, memberSince: opts.now.toISOString(), hasAccount: false, points: 0, source: "app" };

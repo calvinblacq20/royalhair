@@ -1,4 +1,4 @@
-import { CalendarDays, ChevronRight, Globe, Heart, LayoutDashboard, LifeBuoy, LogOut, MapPin, MessageCircle, ReceiptText, RotateCcw, Search, Smartphone, Sparkles, UserRound } from "lucide-react";
+import { CalendarDays, ChevronRight, Globe, Heart, LayoutDashboard, LifeBuoy, LogOut, MapPin, MessageCircle, ReceiptText, RotateCcw, Search, ShieldCheck, Smartphone, Sparkles, UserRound } from "lucide-react";
 import { motion } from "motion/react";
 import { useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -8,6 +8,7 @@ import { Button } from "../components/Button";
 import { useNotify } from "../components/Notify";
 import { Sheet } from "../components/Sheet";
 import { SALON } from "../data/business";
+import { SALON_SIDE } from "../data/env";
 import { accessOf, accountOf, actions, useAppData } from "../data/store";
 import type { Customer } from "../data/types";
 import { visibleVisits } from "../lib/checkout";
@@ -82,6 +83,7 @@ function GuestProfile() {
             <MenuRow icon={<CalendarDays size={20} strokeWidth={1.6} />} label="Visits on this phone" note={onPhone.length ? `${onPhone.length} ${onPhone.length === 1 ? "visit" : "visits"}` : "None yet"} to="/visits" />
             <MenuRow icon={<Heart size={20} strokeWidth={1.6} />} label="Saved services" to="/explore?saved=1" />
             <MenuRow icon={<MapPin size={20} strokeWidth={1.6} />} label="Branches and opening hours" to="/branches" />
+            <MenuRow icon={<ShieldCheck size={20} strokeWidth={1.6} />} label="Privacy and booking terms" to="/privacy" />
             {remembered && <MenuRow icon={<Smartphone size={20} strokeWidth={1.6} />} label="Details on this phone" note={formatGhPhone(remembered.phone)} onClick={() => setSheet("device")} />}
           </motion.nav>
 
@@ -182,6 +184,7 @@ function AccountProfile({ account }: { account: Customer }) {
             <MenuRow icon={<CalendarDays size={20} strokeWidth={1.6} />} label="My visits" to="/visits" />
             <MenuRow icon={<ReceiptText size={20} strokeWidth={1.6} />} label="Receipts" to="/visits?tab=receipts" />
             <MenuRow icon={<MapPin size={20} strokeWidth={1.6} />} label="Branches and opening hours" to="/branches" />
+            <MenuRow icon={<ShieldCheck size={20} strokeWidth={1.6} />} label="Privacy and booking terms" to="/privacy" />
           </motion.nav>
 
           <nav className="card list-card" style={{ marginTop: 16 }} aria-label="Help">
@@ -224,25 +227,33 @@ function AccountProfile({ account }: { account: Customer }) {
 
 /* ---------------- Shared ---------------- */
 
+/** Log out, plus the demo controls in a demo build. The live site never shows the salon side or a reset. */
 function DemoSession({ extra }: { extra?: ReactNode }) {
   const notify = useNotify();
+  if (!SALON_SIDE && !extra) return null;
   return (
     <>
       <nav className="card list-card" style={{ marginTop: 16 }} aria-label="Session">
-        <MenuRow icon={<LayoutDashboard size={20} strokeWidth={1.6} />} label="Open the salon side" note="What the front desk and the owner see" to="/admin" />
-        <MenuRow
-          icon={<RotateCcw size={20} strokeWidth={1.6} />}
-          label="Reset demo data"
-          onClick={() => {
-            actions.resetDemo();
-            notify("Demo reset", "Sample visits are back and you're logged out.");
-          }}
-        />
+        {SALON_SIDE && (
+          <>
+            <MenuRow icon={<LayoutDashboard size={20} strokeWidth={1.6} />} label="Open the salon side" note="What the front desk and the owner see" to="/admin" />
+            <MenuRow
+              icon={<RotateCcw size={20} strokeWidth={1.6} />}
+              label="Reset demo data"
+              onClick={() => {
+                actions.resetDemo();
+                notify("Demo reset", "Sample visits are back and you're logged out.");
+              }}
+            />
+          </>
+        )}
         {extra}
       </nav>
-      <p className="t-cap subtle mobile-only" style={{ textAlign: "center", marginTop: 20 }}>
-        {SALON.name} · Demo build
-      </p>
+      {SALON_SIDE && (
+        <p className="t-cap subtle mobile-only" style={{ textAlign: "center", marginTop: 20 }}>
+          {SALON.name} · Demo build
+        </p>
+      )}
     </>
   );
 }

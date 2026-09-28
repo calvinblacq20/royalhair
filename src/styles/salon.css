@@ -85,3 +85,8 @@
   .gallery { margin-inline: 0; padding-inline: 0; }
 }
 
+
+/* ---------- Privacy notice and booking terms ---------- */
+.legal p, .legal li { line-height: 1.6; max-width: 68ch; }
+.legal-list { display: flex; flex-direction: column; gap: 6px; padding-left: 20px; list-style: disc; }
+.desk-copy a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }

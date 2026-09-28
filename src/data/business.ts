@@ -115,7 +115,8 @@ export function defaultSettings(): SalonSettings {
       reviewCount: 96,
       phone: "024 613 6708",
       landline: "030 290 9560",
-      email: "hello@royalhair.gh",
+      // Not published anywhere yet: set it in Settings once the salon gives one.
+      email: "",
       whatsappBusiness: "https://wa.me/233246136708",
       instagram: "https://www.instagram.com/royalhair_gh/",
       tiktok: "https://www.tiktok.com/@royalhairgh",

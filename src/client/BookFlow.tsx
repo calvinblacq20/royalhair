@@ -1,7 +1,7 @@
 import { AlertTriangle, ArrowUp, CalendarDays, Check, Clock, Mail, MapPin, Phone, Plus, Shuffle, Store, UserRound } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState, type InputHTMLAttributes, type ReactNode } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AccountSheet } from "../components/AccountSheets";
 import { AppIcon } from "../components/Brand";
 import { Skeleton, Stars, useSkeleton } from "../components/Bits";
@@ -838,6 +838,17 @@ function Review(r: ReviewProps) {
           <p className="t-title">Important info</p>
           <p className="muted">Please arrive 10 minutes early. Bringing your own hair or extensions? Add it in the note below.</p>
         </div>
+        <p className="t-cap subtle" style={{ marginTop: 4 }}>
+          By booking you agree to our{" "}
+          <Link to="/terms" className="link">
+            booking terms
+          </Link>{" "}
+          and{" "}
+          <Link to="/privacy" className="link">
+            privacy notice
+          </Link>
+          .
+        </p>
         {r.allergies.trim() && (
           <div className="card card-pad stack gap-4">
             <p className="t-title inline" style={{ gap: 6 }}>
@@ -879,10 +890,12 @@ function Review(r: ReviewProps) {
             <Phone size={16} />
             <span>WhatsApp {formatGhPhone(r.contact.phone)}</span>
           </p>
-          <p className="info-line muted">
-            <Mail size={16} />
-            <span>{r.contact.email}</span>
-          </p>
+          {r.contact.email && (
+            <p className="info-line muted">
+              <Mail size={16} />
+              <span>{r.contact.email}</span>
+            </p>
+          )}
           <p className="info-line muted">
             <MapPin size={16} />
             <span>{r.contact.area}</span>

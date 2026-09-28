@@ -3,6 +3,7 @@ import { motion, useScroll, useTransform } from "motion/react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { BRANCHES, SALON } from "../data/business";
+import { SALON_SIDE } from "../data/env";
 import { accountOf, useAppData } from "../data/store";
 import { formatGhPhone, telLink } from "../lib/contact";
 import { isCalm, spring } from "../motion";
@@ -212,7 +213,8 @@ export function DesktopFooter() {
         {SALON.name}
       </motion.div>
       <p className="desk-copy t-cap">
-        © {new Date().getFullYear()} {SALON.name} Salon &amp; Spa · Demo build
+        © {new Date().getFullYear()} {SALON.name} Salon &amp; Spa · <Link to="/privacy">Privacy</Link> · <Link to="/terms">Booking terms</Link>
+        {SALON_SIDE && " · Demo build"}
       </p>
     </footer>
   );
