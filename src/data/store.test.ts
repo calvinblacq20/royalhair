@@ -70,11 +70,20 @@ describe("booking as a guest", () => {
     expect(getAppData().device.contact).toBeNull();
   });
 
-  it("confirms the visit when a deposit is paid at checkout", () => {
-    const { visit, payment } = unwrap(actions.book(draft({ payment: { amount: 66, method: "momo", payer: "MTN MoMo" } }), NOW));
-    expect(visit.status).toBe("confirmed");
-    expect(payment?.receiptNo).toMatch(/^RHR-\d{4}-\d{4}$/);
-    expect(payment?.reference).toMatch(/^RH\d{4}-[A-Z0-9]{6}$/);
+  it("takes no money online: the booking waits for the salon to confirm, with the full bill to pay there", () => {
+    const receiptsBefore = getAppData().counters.receipt;
+    const { visit } = unwrap(actions.book(draft(), NOW));
+    expect(visit).toMatchObject({ status: "requested", payments: [] });
+    expect(visit.total).toBeGreaterThan(0);
+    expect(getAppData().counters.receipt).toBe(receiptsBefore);
+  });
+
+  it("confirms a booking when the desk takes money for it", () => {
+    const { visit } = unwrap(actions.book(draft(), NOW));
+    const { payment } = unwrap(desk.recordPayment(visit.id, { amount: 50, method: "momo", reference: "MP123" }, NOW));
+    expect(payment).toMatchObject({ receivedBy: "Front desk", method: "momo" });
+    expect(payment.receiptNo).toMatch(/^RHR-\d{4}-\d{4}$/);
+    expect(getAppData().visits.find((v) => v.id === visit.id)?.status).toBe("confirmed");
   });
 
   it("sets the rebook date from the longest repeat on the visit", () => {
@@ -284,8 +293,8 @@ describe("prices, staff and branches", () => {
 
   it("validates the salon's own details", () => {
     expect(desk.saveSettings({ salon: { phone: "123" } })).toEqual({ error: expect.stringMatching(/Ghana phone number/) });
-    expect(desk.saveSettings({ policies: { depositRate: 2 } })).toEqual({ error: expect.stringMatching(/between 0% and 100%/) });
-    expect("error" in desk.saveSettings({ policies: { depositRate: 0.5 } })).toBe(false);
+    expect(desk.saveSettings({ policies: { turnaroundMinutes: 90 } })).toEqual({ error: expect.stringMatching(/between 0 and 60 minutes/) });
+    expect("error" in desk.saveSettings({ policies: { turnaroundMinutes: 15 } })).toBe(false);
   });
 });
 

@@ -1,7 +1,6 @@
 import type { ContactDetails, Customer, Payment, Visit } from "../data/types";
 import { formatGhPhone, normalizeGhPhone } from "./contact";
-import { depositFor } from "./pricing";
-import { balanceDue, paidTotal } from "./visits";
+import { balanceDue } from "./visits";
 
 /* ---------------- Contact details ---------------- */
 
@@ -21,7 +20,8 @@ export function validateContact(contact: ContactDetails): ContactErrors {
   const name = contact.name.trim();
   if (name.length < 2 || !/\p{L}/u.test(name)) errors.name = "Enter your full name.";
   if (!normalizeGhPhone(contact.phone)) errors.phone = "Enter a Ghana WhatsApp number, like 024 123 4567.";
-  if (!EMAIL_RE.test(contact.email.trim())) errors.email = "Enter an email address, like ama@gmail.com.";
+  // Optional: nothing is paid online, so there are no emailed receipts to send.
+  if (contact.email.trim() && !EMAIL_RE.test(contact.email.trim())) errors.email = "Check your email address, like ama@gmail.com, or leave it empty.";
   if (contact.area.trim().length < 2) errors.area = "Enter your town or area.";
   return errors;
 }
@@ -93,28 +93,11 @@ export function findVisit(visits: Visit[], customers: Customer[], visitNumber: s
 
 /* ---------------- Payments ---------------- */
 
-export interface AmountDue {
-  amount: number;
-  label: "deposit" | "balance";
-}
-
-/** Before any money comes in, clients pay the deposit; after that, the balance. */
-export function amountDue(visit: Pick<Visit, "status" | "total" | "payments">): AmountDue {
-  const balance = balanceDue(visit);
-  if (paidTotal(visit) === 0 && (visit.status === "requested" || visit.status === "confirmed")) {
-    return { amount: Math.min(depositFor(visit.total), balance), label: "deposit" };
-  }
-  return { amount: balance, label: "balance" };
-}
-
 export function paymentKindFor(visit: Pick<Visit, "total" | "payments">, amount: number): Payment["kind"] {
   if (amount >= balanceDue(visit)) return "final";
-  return paidTotal(visit) === 0 ? "deposit" : "part";
-}
-
-/** Merchant reference sent to Paystack, tying the charge to the visit: RH1042-7K2M9Q. */
-export function paystackReference(visitNumber: string, random: string): string {
-  return `${visitNumber.replace("-", "")}-${random.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6).padEnd(6, "0")}`;
+  // Everything is paid at the desk, so money short of the full bill is a part payment. "deposit" only
+  // survives on payments recorded before the salon dropped online deposits.
+  return "part";
 }
 
 /* ---------------- One-time codes ---------------- */

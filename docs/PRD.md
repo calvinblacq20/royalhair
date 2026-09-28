@@ -12,12 +12,13 @@ owner one screen per branch that shows the whole day. One app with two sides, sh
   the office. Three branches run at once and staff change often.
 
 ## Stage
-Clickable demo using sample data stored in the browser. Paystack payments, WhatsApp codes and
-logins are simulated: no money moves and no messages are sent.
+Clickable demo using sample data stored in the browser. WhatsApp codes and logins are simulated:
+no messages are sent. Nothing is paid online at all: every visit is paid at the salon desk
+(see `docs/decisions/0001-pay-at-the-salon.md`).
 
 ## Design
-The house layout system (see `docs/design-reference.md`) in Royal Hair colours: near-black ink on a
-warm champagne ground, with the brand's magenta as the one bright accent.
+The house layout system (the tailor and bakery apps) in Royal Hair colours: near-black ink and
+white cards on a neutral light grey page, with the brand's pink as the one bright accent.
 
 ## The business, as found (Sept 2026)
 Facts confirmed from their own channels and public listings. Anything not confirmed is marked.
@@ -43,8 +44,7 @@ Facts confirmed from their own channels and public listings. Anything not confir
 | Photos | stills from their own TikTok posts | `docs/photo-sources.md` |
 
 **To confirm with the owner before go-live:** the real price for every service, real opening hours
-per branch, chairs and staff per branch, the walk-in vs appointment split, whether they take
-deposits today, who owns the domain, whether any branch already runs a POS, each branch's own
+per branch, chairs and staff per branch, the walk-in vs appointment split, who owns the domain, whether any branch already runs a POS, each branch's own
 phone number (Kumasi has none published), and written permission to use their TikTok stills on the
 site. Prices in `src/data/catalog.ts` are placeholders, checked against the market: a Kumasi
 barbershop-salon on Fresha (Sept 2026) charges GH₵60 for a 30-minute adult cut, GH₵40 for a
@@ -55,8 +55,8 @@ barbershop-salon on Fresha (Sept 2026) charges GH₵60 for a 30-minute adult cut
 |---|---|
 | Home | Brand, the three branches, what they do, today's availability, starting prices, reviews, hours, WhatsApp |
 | Services | The price list they have never published. Filter by Hair, Barbering, Nails, Spa, Kids. Price and how long it takes, on every line. |
-| Book | Branch → services → stylist (or first available) → day and time → your details → pay the deposit. No account needed. |
-| Pay | Pay the deposit now (Paystack: Mobile Money or card), or book and pay at the salon |
+| Book | Services → branch and stylist (or first available) → day and time → your details → review and book. Nothing to pay online, no account needed, email optional. |
+| Pay | At the salon only: cash, MoMo or card at the desk after the visit. The official receipt then appears in My visits. |
 | My visits | Visits booked on this phone; "Find my booking" with booking number + WhatsApp number + code |
 | Visit detail | When, where, who with, what it costs, directions, reschedule, cancel, add to calendar |
 | Account (optional) | WhatsApp number + code, no password. Visits, hair record, points and receipts on any phone |
@@ -86,8 +86,8 @@ barbershop-salon on Fresha (Sept 2026) charges GH₵60 for a 30-minute adult cut
   date, preferred stylist, preferred branch. Never shown to the client.
 - **Visit:** number, customer, branch, staff, services booked, start, minutes, status history,
   price, payments, source (online / walk-in / WhatsApp / phone), notes, rebook-due date
-- **Payment:** amount, method (MoMo / card / cash / bank), payer, Paystack reference, receipt
-  number, date, which staff member took it
+- **Payment:** taken at the desk only. Amount, method (MoMo / card / cash / bank), reference
+  (MoMo transaction ID or bank reference), receipt number, date, which staff member took it
 - **This phone (no account):** remembered details (only if ticked), visits booked or found here
 - **Review:** rating, text, status (pending / published / hidden), owner reply
 
@@ -100,7 +100,7 @@ Visit stages: `requested → confirmed → arrived → in-chair → done` (or `c
 - "First available" picks the stylist with the shortest day so far, not the first in the list.
 - A stylist calls in sick: their day can be closed and every visit moved to another stylist.
 - Walk-ins and online bookings share one diary, so a walk-in blocks the slot immediately.
-- No-shows keep the deposit and are counted against the client on their record.
+- No-shows are counted against the client on their record. There is no deposit to keep.
 - A client books at Kumasi but shows up at West Hills: the visit can be moved between branches.
 - Branch hours differ (mall branches follow mall hours); each branch has its own week.
 - Past or taken slots are never offered; a slot that fills while the client is choosing is rejected
@@ -109,20 +109,20 @@ Visit stages: `requested → confirmed → arrived → in-chair → done` (or `c
 - The same WhatsApp number books again as a guest: update the one customer record, don't create a second.
 - A booking link opened on another phone: hidden until booking number, WhatsApp number and code match.
 - Payments can exceed the price: block it.
-- Cancelling within 24 hours: the deposit is not automatically refunded; the owner decides.
+- Cancelling inside the notice the salon asks for (24 hours by default) still works online; the
+  client is asked to message the branch too, so the time can be offered to someone else.
 
-## Going live with Paystack
-- The app starts the payment with the public key; the secret key lives only on the server.
-- A visit is marked paid only after the server verifies the transaction (Paystack verify API or a
-  webhook with a checked signature), and the verified amount and currency (GHS) match what's due.
-- The Paystack reference (`RH1042-XXXXXX`) is unique per attempt, so a repeated webhook can't
-  record a payment twice.
-- Receipts are numbered on the server after verification.
-- Email is required because Paystack needs one for every charge.
+## Payments
+- Every payment is taken at the salon desk: cash, MoMo to the salon's number, card or bank.
+  Staff record it against the visit, which issues the numbered official receipt.
+- The site never asks for card or MoMo details, so there is no payment provider, no webhook, no
+  refund flow and nothing to reconcile online. Receipt numbers must still be issued by the server
+  once the real backend exists, so two desks can never hand out the same number.
+- Email is optional: there are no emailed payment receipts to send.
 
 ## Out of scope (demo)
-Real authentication, live Paystack and WhatsApp codes (need the server above), WhatsApp Business
-API, retail product stock, staff payroll, loyalty tiers, gift cards, and the lash and brow menu
+Real authentication and WhatsApp codes (need the backend), online payments of any kind (the
+salon's decision), WhatsApp Business API, retail product stock, staff payroll, loyalty tiers, gift cards, and the lash and brow menu
 until the new lash technician is hired.
 
 ## Decision log
@@ -132,7 +132,7 @@ until the new lash technician is hired.
 | One diary per branch, one column per staff member | A single list of bookings | A salon day is read by chair, not by time |
 | Walk-in entry is two taps and always available | Online bookings only | Ghanaian salons run heavily on walk-ins; a slow walk-in flow gets abandoned on day two |
 | Double-booking is prevented at write time, not just in the UI | Trust the slot list | The slot list can be stale by the time the client submits |
-| Deposit taken at booking | Free booking | No-shows are the biggest cost line in a salon; a deposit is what stops them |
+| Pay at the salon only (owner's decision, Sept 2026; ADR 0001) | Online deposit through Paystack | The salon wants no online payments. Booking is free and confirmed on WhatsApp; no-shows are tracked on the client record instead |
 | The hair record sits on the client, not the visit | Notes per visit only | The colour formula and the allergy are why a client stays; they must survive a change of stylist |
 | Rebook-due computed from the service, not a manual reminder | Manual follow-up list | "Your braids are six weeks old" writes itself from data already present |
 | Prices published on the site from day one | Price on request | Four directories publicly say this business has no published rate card; it is the single biggest gap |

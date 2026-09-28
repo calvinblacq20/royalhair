@@ -44,6 +44,11 @@ export interface Service {
   tone: Tone;
   /** Optional real photo in /public/photos. */
   photo?: string;
+  /**
+   * Only these roles do it, on top of covering the service's group. Kids' braids and a kids' cut
+   * are both "Kids", but a barber doesn't braid. Unset means anyone who covers the group.
+   */
+  roles?: StaffRole[];
 }
 
 export type StaffRole = "stylist" | "barber" | "nail-tech" | "therapist" | "manager";

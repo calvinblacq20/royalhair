@@ -6,7 +6,7 @@ import { AccountSheet, FindVisitSheet } from "../components/AccountSheets";
 import { Photo, Skeleton, useSkeleton } from "../components/Bits";
 import { Button } from "../components/Button";
 import { branchById } from "../data/business";
-import { serviceById } from "../data/catalog";
+import { serviceById, servicePhoto } from "../data/catalog";
 import { accessOf, accountOf, useAppData } from "../data/store";
 import type { Visit } from "../data/types";
 import { visibleVisits } from "../lib/checkout";
@@ -154,7 +154,7 @@ function VisitSection({ title, visits, now }: { title: string; visits: Visit[]; 
           return (
             <motion.div key={visit.id} className="order-row" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ ...spring.small, delay: i * 0.05 }}>
               <Link to={`/visits/${visit.id}`} className="inline grow" style={{ gap: 12 }}>
-                <Photo tone={service?.tone ?? "mist"} src={service?.photo} sizes="60px" height={60} radius="var(--r-img)" markSize={22} className="order-thumb" />
+                <Photo tone={service?.tone ?? "mist"} src={service ? servicePhoto(service) : undefined} sizes="60px" height={60} radius="var(--r-img)" markSize={22} className="order-thumb" />
                 <span className="grow stack" style={{ minWidth: 0 }}>
                   <span className="t-title truncate">{(service?.name ?? "Visit") + extra}</span>
                   <span className="muted t-cap">

@@ -318,6 +318,7 @@ export function defaultServices(): Service[] {
       repeatWeeks: 4,
       tone: "sage",
       photo: "/photos/barber-kid-cut.webp",
+      roles: ["barber", "stylist", "manager"],
     },
     {
       id: "s-kidsbraids",
@@ -331,6 +332,7 @@ export function defaultServices(): Service[] {
       repeatWeeks: 6,
       tone: "blush",
       photo: "/photos/kids-braids.webp",
+      roles: ["stylist", "manager"],
     },
     {
       id: "s-kidswash",
@@ -342,6 +344,7 @@ export function defaultServices(): Service[] {
       bookable: true,
       repeatWeeks: 3,
       tone: "champagne",
+      roles: ["stylist", "manager"],
     },
   ];
 }

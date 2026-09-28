@@ -24,7 +24,7 @@ export interface AppData {
 export const DEMO_ACCOUNT_PHONE = "024 501 2233";
 
 /** Bump whenever the saved shape changes, so an old demo in someone's browser starts fresh. */
-export const SEED_VERSION = 3;
+export const SEED_VERSION = 4;
 
 function defaultStaff(): Staff[] {
   return [
@@ -127,17 +127,17 @@ const HISTORY: VisitSpec[] = [
   { id: "v-12", customerId: "c-ruth", branchId: "b-airport", staffId: "st-joyce", serviceIds: ["s-facial"], dayOffset: -3, time: "11:00", status: "done", source: "online", paidShare: 1 },
 
   // Today
-  { id: "v-13", customerId: "c-esi", branchId: "b-westhills", staffId: "st-adwoa", serviceIds: ["s-weave"], dayOffset: 0, time: "09:00", status: "in-chair", source: "online", paidShare: 0.3 },
+  { id: "v-13", customerId: "c-esi", branchId: "b-westhills", staffId: "st-adwoa", serviceIds: ["s-weave"], dayOffset: 0, time: "09:00", status: "in-chair", source: "online" },
   { id: "v-14", customerId: "c-kwame", branchId: "b-westhills", staffId: "st-kwabena", serviceIds: ["s-cut", "s-shapeup"], dayOffset: 0, time: "10:00", status: "arrived", source: "walkin", paidShare: 0 },
-  { id: "v-15", customerId: "c-abigail", branchId: "b-westhills", staffId: "st-abena", serviceIds: ["s-pedi"], dayOffset: 0, time: "13:00", status: "confirmed", source: "online", paidShare: 0.3 },
+  { id: "v-15", customerId: "c-abigail", branchId: "b-westhills", staffId: "st-abena", serviceIds: ["s-pedi"], dayOffset: 0, time: "13:00", status: "confirmed", source: "online" },
   { id: "v-16", customerId: "c-naa", branchId: "b-westhills", staffId: "st-efua", serviceIds: ["s-cornrows"], dayOffset: 0, time: "14:30", status: "confirmed", source: "whatsapp", paidShare: 0 },
-  { id: "v-17", customerId: "c-selorm", branchId: "b-airport", staffId: "st-yaw", serviceIds: ["s-cut"], dayOffset: 0, time: "17:00", status: "confirmed", source: "online", paidShare: 0.3 },
+  { id: "v-17", customerId: "c-selorm", branchId: "b-airport", staffId: "st-yaw", serviceIds: ["s-cut"], dayOffset: 0, time: "17:00", status: "confirmed", source: "online" },
   { id: "v-18", customerId: "c-yaa", branchId: "b-kumasi", staffId: "st-priscilla", serviceIds: ["s-mani"], dayOffset: 0, time: "15:00", status: "requested", source: "online", paidShare: 0 },
 
   // Coming up
-  { id: "v-19", customerId: "c-adjoa", branchId: "b-westhills", staffId: "st-efua", serviceIds: ["s-knotless"], dayOffset: 2, time: "09:00", status: "confirmed", source: "online", paidShare: 0.3, notes: "Bringing her own hair." },
-  { id: "v-20", customerId: "c-ruth", branchId: "b-airport", staffId: "st-akosua", serviceIds: ["s-locs"], dayOffset: 3, time: "11:00", status: "confirmed", source: "online", paidShare: 0.3 },
-  { id: "v-21", customerId: "c-esi", branchId: "b-airport", staffId: "st-joyce", serviceIds: ["s-massage", "s-scrub"], dayOffset: 5, time: "15:00", status: "confirmed", source: "online", paidShare: 0.3 },
+  { id: "v-19", customerId: "c-adjoa", branchId: "b-westhills", staffId: "st-efua", serviceIds: ["s-knotless"], dayOffset: 2, time: "09:00", status: "confirmed", source: "online", notes: "Bringing her own hair." },
+  { id: "v-20", customerId: "c-ruth", branchId: "b-airport", staffId: "st-akosua", serviceIds: ["s-locs"], dayOffset: 3, time: "11:00", status: "confirmed", source: "online" },
+  { id: "v-21", customerId: "c-esi", branchId: "b-airport", staffId: "st-joyce", serviceIds: ["s-massage", "s-scrub"], dayOffset: 5, time: "15:00", status: "confirmed", source: "online" },
   { id: "v-22", customerId: "c-kwame", branchId: "b-westhills", staffId: "st-kwabena", serviceIds: ["s-cut"], dayOffset: 6, time: "18:30", status: "requested", source: "online", paidShare: 0 },
 ];
 
@@ -163,11 +163,12 @@ function buildVisit(spec: VisitSpec, index: number, now: Date, counters: { recei
           id: `${spec.id}-p1`,
           amount: paid,
           method: spec.source === "walkin" ? "cash" : "momo",
-          reference: spec.source === "walkin" ? "Cash" : `RH${spec.id.toUpperCase()}-SEED`,
+          reference: spec.source === "walkin" ? "Cash" : "MoMo at the desk",
           at: new Date(day.getTime() + 9 * 3_600_000).toISOString(),
           receiptNo: receiptNumber(day.getFullYear(), ++counters.receipt),
-          kind: paid >= total ? "final" : "deposit",
-          receivedBy: spec.source === "walkin" ? "Front desk" : "Paystack (online)",
+          kind: paid >= total ? "final" : "part",
+          // Everything is paid at the salon, whichever way the visit was booked.
+          receivedBy: "Front desk",
         },
       ]
     : [];

@@ -55,7 +55,7 @@ describe("metrics", () => {
   ];
   const week = periodRange("7d", NOW);
 
-  it("counts money on the day it arrived, deposits included", () => {
+  it("counts money on the day it arrived, part payments included", () => {
     expect(metricValue("cash", visits, week)).toBe(510);
   });
 

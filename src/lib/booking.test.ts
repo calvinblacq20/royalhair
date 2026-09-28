@@ -157,6 +157,15 @@ describe("staffFor", () => {
   it("excludes staff from other branches", () => {
     expect(staffFor([{ ...stylist, branchId: "b2" }], "b1", [service("a", 60)])).toEqual([]);
   });
+
+  it("keeps a service to the roles that do it: a barber covering Kids cuts hair but doesn't braid", () => {
+    const kidsStylist: Staff = { ...stylist, id: "st4", groups: ["hair", "kids"] };
+    const kidsBarber: Staff = { ...barber, id: "st5", groups: ["barbering", "kids"] };
+    const kidsCut = { group: "kids" as const, roles: ["barber" as const, "stylist" as const] };
+    const kidsBraids = { group: "kids" as const, roles: ["stylist" as const] };
+    expect(staffFor([kidsStylist, kidsBarber], "b1", [kidsCut]).map((s) => s.id)).toEqual(["st4", "st5"]);
+    expect(staffFor([kidsStylist, kidsBarber], "b1", [kidsBraids]).map((s) => s.id)).toEqual(["st4"]);
+  });
 });
 
 describe("availabilityFor", () => {

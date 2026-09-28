@@ -1,4 +1,3 @@
-import { POLICIES } from "../data/business";
 import type { Service } from "../data/types";
 import { money } from "./format";
 
@@ -12,11 +11,6 @@ export function priceLabel(service: Pick<Service, "price" | "priceFrom">): strin
   return service.priceFrom ? `from ${money(service.price)}` : money(service.price);
 }
 
-/** The deposit that holds the slot, rounded up to the nearest cedi. */
-export function depositFor(total: number, rate = POLICIES.depositRate): number {
-  if (total <= 0) return 0;
-  return Math.min(total, Math.ceil(total * rate));
-}
 
 /** "2 hr 30 min", "45 min" */
 export function durationLabel(minutes: number): string {

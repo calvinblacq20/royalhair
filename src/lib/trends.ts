@@ -78,7 +78,7 @@ export interface MetricDef {
 }
 
 export const METRICS: Record<MetricId, MetricDef> = {
-  cash: { id: "cash", label: "Cash received", good: "up", format: "money", hint: "Deposits and payments: MoMo, cash, card and bank" },
+  cash: { id: "cash", label: "Cash received", good: "up", format: "money", hint: "Payments taken at the desk: MoMo, cash, card and bank" },
   visits: { id: "visits", label: "Visits done", good: "up", format: "count", hint: "Clients who finished a visit" },
   noShows: { id: "noShows", label: "No-shows", good: "down", format: "count", hint: "Booked clients who didn't come" },
   avgSpend: { id: "avgSpend", label: "Average spend", good: "up", format: "money", hint: "Average bill of finished visits" },

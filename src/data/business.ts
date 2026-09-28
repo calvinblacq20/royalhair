@@ -28,8 +28,6 @@ export interface SalonSettings {
     momoName: string;
   };
   policies: {
-    /** Share of the price taken as a deposit when booking online, 0–1. */
-    depositRate: number;
     /** Hours before the start after which a booking can no longer be cancelled online. */
     cancelWindowHours: number;
     /** Minutes of slack left between visits for cleaning down the chair. */
@@ -125,7 +123,6 @@ export function defaultSettings(): SalonSettings {
       momoName: "Royal Hair Salon & Spa",
     },
     policies: {
-      depositRate: 0.3,
       cancelWindowHours: 24,
       turnaroundMinutes: 10,
       receiptFooter: "Thank you for choosing Royal Hair Salon & Spa.",

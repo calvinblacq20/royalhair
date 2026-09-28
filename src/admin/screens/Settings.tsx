@@ -156,7 +156,7 @@ function SalonCard({ salon }: { salon: Salon }) {
     >
       {field("name", "Salon name")}
       {field("phone", "Main WhatsApp number", "Bookings and questions from the client app go here.", "tel")}
-      {field("momo", "MoMo number for payments", "Deposits and balances are sent to this number.", "tel")}
+      {field("momo", "MoMo number for payments", "Clients send MoMo to this number when they pay at the desk.", "tel")}
       {field("momoName", "MoMo account name", "Clients check this name before they send money.")}
       {field("landline", "Landline", undefined, "tel")}
       {field("email", "Email")}
@@ -192,14 +192,9 @@ function PoliciesCard({ policies }: { policies: Policies }) {
       }}
     >
       <div className="field">
-        <label htmlFor="policy-deposit">Deposit to hold a booking (%)</label>
-        <input id="policy-deposit" inputMode="numeric" value={Math.round(form.depositRate * 100)} onChange={(e) => setForm({ ...form, depositRate: digits(e.target.value) / 100 })} />
-        <span className="hint">Taken by MoMo or card when a client books online. 0 turns deposits off.</span>
-      </div>
-      <div className="field">
-        <label htmlFor="policy-cancel">Free cancellation until (hours before)</label>
+        <label htmlFor="policy-cancel">Notice asked for before cancelling (hours)</label>
         <input id="policy-cancel" inputMode="numeric" value={form.cancelWindowHours} onChange={(e) => setForm({ ...form, cancelWindowHours: digits(e.target.value) })} />
-        <span className="hint">After this, clients have to call the branch to cancel.</span>
+        <span className="hint">How much notice clients are asked to give before cancelling or moving a booking.</span>
       </div>
       <div className="field">
         <label htmlFor="policy-turnaround">Clean-down between clients (minutes)</label>

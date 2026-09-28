@@ -54,7 +54,7 @@ export function canCancel(visit: Pick<Visit, "status">): boolean {
   return visit.status === "requested" || visit.status === "confirmed";
 }
 
-/** Inside the cancellation window the deposit is the salon's to decide on, so send them to WhatsApp. */
+/** Inside the notice the salon asks for, the client is also asked to message the branch. */
 export function isLateCancel(visit: Pick<Visit, "start">, now: Date, windowHours: number): boolean {
   return parseLocal(visit.start).getTime() - now.getTime() < windowHours * 3_600_000;
 }
@@ -98,30 +98,25 @@ export function whenPhrase(visit: Pick<Visit, "start">, now: Date): string {
 export interface NextAction {
   title: string;
   body: string;
-  cta?: { label: string; kind: "whatsapp" | "pay" | "calendar" | "directions" };
+  cta?: { label: string; kind: "whatsapp" | "calendar" | "directions" };
 }
 
-export function nextAction(visit: Visit, now: Date, deposit: number): NextAction | null {
+/** Everything is paid at the salon, so the client never has a payment step online. */
+export function nextAction(visit: Visit, now: Date): NextAction | null {
   const balance = balanceDue(visit);
   switch (visit.status) {
     case "requested":
-      return paidTotal(visit) > 0
-        ? {
-            title: "Deposit received",
-            body: "We'll confirm your stylist and time on WhatsApp shortly.",
-            cta: { label: "Chat on WhatsApp", kind: "whatsapp" },
-          }
-        : {
-            title: `Hold your slot with a ${money(deposit)} deposit`,
-            body: "Your time is held for an hour. A deposit confirms it and comes off your bill.",
-            cta: { label: "Pay deposit", kind: "pay" },
-          };
+      return {
+        title: "Booking received",
+        body: "The branch will confirm your time and stylist on WhatsApp shortly. You pay at the salon on the day.",
+        cta: { label: "Chat on WhatsApp", kind: "whatsapp" },
+      };
     case "confirmed": {
       const start = parseLocal(visit.start);
       if (start > now) {
         return {
           title: `You're booked for ${whenPhrase(visit, now)}`,
-          body: balance > 0 ? `${money(balance)} to pay at the salon. Come ten minutes early if you can.` : "Fully paid. Come ten minutes early if you can.",
+          body: balance > 0 ? `${money(balance)} to pay at the salon: cash, MoMo or card. Come ten minutes early if you can.` : "Fully paid. Come ten minutes early if you can.",
           cta: { label: "Add to calendar", kind: "calendar" },
         };
       }
@@ -137,7 +132,7 @@ export function nextAction(visit: Visit, now: Date, deposit: number): NextAction
       return { title: "Enjoy your visit", body: "Anything else you'd like added? Just ask your stylist." };
     case "done":
       return balance > 0
-        ? { title: "Balance to settle", body: `${money(balance)} is still outstanding on this visit.`, cta: { label: "Pay balance", kind: "pay" } }
+        ? { title: "Balance to settle", body: `${money(balance)} is still outstanding on this visit. Settle it at the salon desk, or message the branch.`, cta: { label: "Message the branch", kind: "whatsapp" } }
         : visit.rebookDue
           ? { title: "Book your next visit", body: `Based on what you had done, you're due back around ${relativeDay(parseLocal(visit.rebookDue), now)}.` }
           : null;

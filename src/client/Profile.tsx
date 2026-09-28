@@ -10,10 +10,10 @@ import { Sheet } from "../components/Sheet";
 import { SALON } from "../data/business";
 import { accessOf, accountOf, actions, useAppData } from "../data/store";
 import type { Customer } from "../data/types";
-import { amountDue, visibleVisits } from "../lib/checkout";
+import { visibleVisits } from "../lib/checkout";
 import { formatGhPhone, whatsappLink } from "../lib/contact";
 import { fmtDate, money } from "../lib/format";
-import { isActive } from "../lib/visits";
+import { balanceDue, isActive } from "../lib/visits";
 import { enter } from "../motion";
 
 export function Profile() {
@@ -137,8 +137,9 @@ function AccountProfile({ account }: { account: Customer }) {
 
   // Only this account's own visits, not ones looked up on this phone for someone else.
   const mine = data.visits.filter((v) => v.customerId === account.id);
-  const owing = mine.filter((v) => isActive(v) && amountDue(v).amount > 0);
-  const totalDue = owing.reduce((sum, v) => sum + amountDue(v).amount, 0);
+  // Nothing is paid online: this is what the client will pay at the salon, not a bill to settle here.
+  const owing = mine.filter((v) => isActive(v) && balanceDue(v) > 0);
+  const totalDue = owing.reduce((sum, v) => sum + balanceDue(v), 0);
 
   return (
     <main className="screen is-narrow">
@@ -154,7 +155,7 @@ function AccountProfile({ account }: { account: Customer }) {
 
           <motion.section className="balance-card" style={{ marginTop: 24 }} {...enter(24, 0.05)}>
             <p className="t-cap" style={{ color: "var(--white-75)" }}>
-              {totalDue > 0 ? "Due now" : "Balance"}
+              {totalDue > 0 ? "To pay at the salon" : "Balance"}
             </p>
             <p className="t-num">{money(totalDue)}</p>
             <p className="t-cap" style={{ color: "var(--white-75)" }}>
@@ -163,7 +164,7 @@ function AccountProfile({ account }: { account: Customer }) {
             <div className="inline" style={{ gap: 8, marginTop: 10 }}>
               {owing[0] && (
                 <Button variant="magenta" size="sm" onClick={() => navigate(`/visits/${owing[0]?.id}`)}>
-                  Pay now
+                  View visit
                 </Button>
               )}
               <span className="inline t-cap" style={{ color: "var(--magenta)", gap: 4 }}>

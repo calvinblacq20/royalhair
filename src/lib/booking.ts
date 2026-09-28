@@ -35,10 +35,9 @@ export function staffWorksOn(staff: Staff, day: Date): boolean {
   return staff.active && staff.days.includes(day.getDay());
 }
 
-/** Staff who can take every service in the list, at this branch. */
-export function staffFor(all: Staff[], branchId: string, services: Service[]): Staff[] {
-  const groups = new Set(services.map((s) => s.group));
-  return all.filter((s) => s.active && s.branchId === branchId && [...groups].every((g) => s.groups.includes(g)));
+/** Staff who can take every service in the list, at this branch: they cover each group and hold a role the service allows. */
+export function staffFor(all: Staff[], branchId: string, services: Pick<Service, "group" | "roles">[]): Staff[] {
+  return all.filter((s) => s.active && s.branchId === branchId && services.every((svc) => s.groups.includes(svc.group) && (!svc.roles || svc.roles.includes(s.role))));
 }
 
 export function totalMinutes(services: Service[], turnaroundMinutes = 0): number {

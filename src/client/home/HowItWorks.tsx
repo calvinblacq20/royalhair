@@ -1,4 +1,4 @@
-import { CalendarCheck, Check, Scissors, Sparkles, Wallet } from "lucide-react";
+import { CalendarCheck, Check, MessageCircle, Scissors, Sparkles } from "lucide-react";
 import { motion, useScroll, useTransform } from "motion/react";
 import { useEffect, useRef, type ReactNode } from "react";
 import { Photo } from "../../components/Bits";
@@ -41,21 +41,21 @@ const STEPS: Step[] = [
     float: { label: "Booked", value: "Sat, 10:30", note: "Men's haircut · Kwabena" },
   },
   {
-    eyebrow: "Step 3 · Hold",
-    icon: <Wallet size={14} />,
-    title: "Hold it with a small deposit.",
-    body: "Pay 30% by MoMo or card to confirm. It comes off your bill on the day, and you can move your visit up to 24 hours before.",
-    check: "Official receipt for every payment",
+    eyebrow: "Step 3 · Confirm",
+    icon: <MessageCircle size={14} />,
+    title: "We confirm it on WhatsApp.",
+    body: "No deposit and no card details. The branch confirms your time on WhatsApp, and you can move or cancel your visit online.",
+    check: "Nothing to pay until you're here",
     photo: "/photos/nail-bar.webp",
     alt: "Nail technicians at work at the nail bar",
     position: "center 45%",
-    float: { label: "Deposit", value: "GH₵ 18", note: "Paid · MoMo" },
+    float: { label: "Confirmed", value: "Sat, 10:30", note: "On WhatsApp" },
   },
   {
     eyebrow: "Step 4 · Visit",
     icon: <Sparkles size={14} />,
     title: "Come in, sit down, walk out new.",
-    body: "Pay the balance at the salon. When your usual cut or braids are due again, the front desk messages you on WhatsApp.",
+    body: "Pay at the salon when you're done: cash, MoMo or card, with an official receipt. When your usual cut or braids are due again, the front desk messages you on WhatsApp.",
     check: "Your stylist keeps your hair record",
     photo: "/photos/ombre-curls.webp",
     alt: "Long ombré curls on a client in the chair",

@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { Customer, Service, Visit } from "../data/types";
-import { amountDue, checkCode, cleanContact, findVisit, normalizeVisitNumber, paymentKindFor, paystackReference, samePhone, upsertCustomer, validateContact, type PendingCode } from "./checkout";
+import { checkCode, cleanContact, findVisit, normalizeVisitNumber, paymentKindFor, samePhone, upsertCustomer, validateContact, type PendingCode } from "./checkout";
 import { formatGhPhone, normalizeGhPhone, whatsappLink } from "./contact";
 import { money, parseLocal, relativeDay } from "./format";
 import { amountInWords, receiptNumber, verifyCode, visitNumber } from "./receipts";
-import { cartTotal, commissionFor, depositFor, durationLabel } from "./pricing";
+import { cartTotal, commissionFor, durationLabel } from "./pricing";
 import { badgeFor, balanceDue, canCancel, isLateCancel, nextStep, paidTotal, validatePayment, whenPhrase } from "./visits";
 
 const service = (id: string, price: number, minutes: number): Service => ({
@@ -31,7 +31,7 @@ function visit(partial: Partial<Visit> = {}): Visit {
   };
 }
 
-const payment = (amount: number) => ({ id: "p1", amount, method: "momo" as const, reference: "r", at: "2026-01-05T10:00:00.000Z", receiptNo: "RHR-2026-0001", kind: "deposit" as const, receivedBy: "Paystack (online)" });
+const payment = (amount: number) => ({ id: "p1", amount, method: "momo" as const, reference: "r", at: "2026-01-05T10:00:00.000Z", receiptNo: "RHR-2026-0001", kind: "part" as const, receivedBy: "Front desk" });
 
 describe("money and duration", () => {
   it("formats cedis the Ghanaian way", () => {
@@ -75,13 +75,6 @@ describe("pricing", () => {
     expect(cartTotal([service("a", 450, 240), service("b", 120, 60)])).toBe(570);
   });
 
-  it("rounds the deposit up to the next cedi and never exceeds the bill", () => {
-    expect(depositFor(450, 0.3)).toBe(135);
-    expect(depositFor(35, 0.3)).toBe(11);
-    expect(depositFor(10, 1.5)).toBe(10);
-    expect(depositFor(0)).toBe(0);
-  });
-
   it("works out commission", () => {
     expect(commissionFor(450, 0.35)).toBe(157.5);
   });
@@ -107,14 +100,9 @@ describe("visit money", () => {
     expect(validatePayment(visit(), 0)).toMatch(/above zero/);
   });
 
-  it("charges the deposit first and the balance afterwards", () => {
-    expect(amountDue(visit({ status: "requested" }))).toEqual({ amount: 90, label: "deposit" });
-    expect(amountDue(visit({ payments: [payment(90)] }))).toEqual({ amount: 210, label: "balance" });
-  });
-
   it("labels the last payment as final", () => {
     expect(paymentKindFor(visit({ payments: [payment(90)] }), 210)).toBe("final");
-    expect(paymentKindFor(visit(), 90)).toBe("deposit");
+    expect(paymentKindFor(visit(), 90)).toBe("part");
     expect(paymentKindFor(visit({ payments: [payment(90)] }), 50)).toBe("part");
   });
 });
@@ -165,9 +153,14 @@ describe("visit state", () => {
 });
 
 describe("contact details", () => {
-  it("asks for what Paystack and WhatsApp need", () => {
+  it("asks for what the salon needs to confirm on WhatsApp", () => {
     const errors = validateContact({ name: "A", phone: "12345", email: "nope", area: "" });
     expect(Object.keys(errors).sort()).toEqual(["area", "email", "name", "phone"]);
+  });
+
+  it("lets a client book without an email, since nothing is paid online", () => {
+    expect(validateContact({ name: "Kojo Baah", phone: "020 444 5566", email: "", area: "Kasoa" })).toEqual({});
+    expect(validateContact({ name: "Kojo Baah", phone: "020 444 5566", email: "  ", area: "Kasoa" })).toEqual({});
   });
 
   it("accepts a complete set", () => {
@@ -249,11 +242,6 @@ describe("one-time codes", () => {
 });
 
 describe("references and receipts", () => {
-  it("builds a Paystack reference that is unique per attempt", () => {
-    expect(paystackReference("RH-1042", "7k2m9q")).toBe("RH1042-7K2M9Q");
-    expect(paystackReference("RH-1042", "ab")).toBe("RH1042-AB0000");
-  });
-
   it("numbers bookings and receipts in sequence", () => {
     expect(visitNumber(1042)).toBe("RH-1042");
     expect(receiptNumber(2026, 7)).toBe("RHR-2026-0007");

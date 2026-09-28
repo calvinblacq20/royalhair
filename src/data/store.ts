@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { rebookDue, totalMinutes, validateSlot } from "../lib/booking";
-import { checkCode, CODE_TTL_MS, findVisit, paymentKindFor, paystackReference, samePhone, upsertCustomer, type Access, type CodeCheck, type PendingCode } from "../lib/checkout";
+import { checkCode, CODE_TTL_MS, findVisit, paymentKindFor, samePhone, upsertCustomer, type Access, type CodeCheck, type PendingCode } from "../lib/checkout";
 import { normalizeGhPhone } from "../lib/contact";
 import { parseLocal } from "../lib/format";
 import { receiptNumber, visitNumber } from "../lib/receipts";
@@ -82,14 +82,6 @@ export const visitById = (data: AppData, id: string): Visit | undefined => data.
 const newId = (prefix: string) =>
   `${prefix}-${typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID().slice(0, 8) : Math.random().toString(36).slice(2, 10)}`;
 
-function randomToken(length: number): string {
-  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  const bytes = new Uint8Array(length);
-  if (typeof crypto !== "undefined" && "getRandomValues" in crypto) crypto.getRandomValues(bytes);
-  else bytes.forEach((_, i) => (bytes[i] = Math.floor(Math.random() * 256)));
-  return Array.from(bytes, (b) => alphabet[b % alphabet.length]).join("");
-}
-
 type Result<T> = T | { error: string };
 
 function itemsFor(serviceIds: string[], idFor: (i: number) => string): VisitItem[] | { error: string } {
@@ -123,36 +115,14 @@ function withAllergy(customer: Customer, allergies?: string): Customer {
 
 /* ---------------- Payments ---------------- */
 
-export interface OnlinePayment {
-  amount: number;
-  method: "momo" | "card";
-  payer: string;
-}
+/*
+ * Every payment is taken at the salon desk (cash, MoMo or card) and recorded by staff. The salon
+ * decided against online payments: see docs/decisions/0001-pay-at-the-salon.md.
+ */
 
-/** Builds a verified Paystack payment. In the live app this only happens after the server confirms the charge. */
-function paymentFor(data: AppData, visit: Visit, pay: OnlinePayment, now: Date): { payment: Payment; receiptCounter: number } | { error: string } {
-  const error = validatePayment(visit, pay.amount);
-  if (error) return { error };
-  const receiptCounter = data.counters.receipt + 1;
-  return {
-    receiptCounter,
-    payment: {
-      id: newId("p"),
-      amount: pay.amount,
-      method: pay.method,
-      reference: paystackReference(visit.number, randomToken(6)),
-      at: now.toISOString(),
-      receiptNo: receiptNumber(now.getFullYear(), receiptCounter),
-      kind: paymentKindFor(visit, pay.amount),
-      receivedBy: "Paystack (online)",
-      payer: pay.payer,
-    },
-  };
-}
-
-/** A deposit on a requested visit confirms it; money after that just settles the bill. */
+/** Money taken at the desk on a visit nobody has confirmed yet confirms it; after that it just settles the bill. */
 function withPayment(visit: Visit, payment: Payment): Visit {
-  const confirms = visit.status === "requested" && payment.kind !== "part";
+  const confirms = visit.status === "requested";
   return {
     ...visit,
     payments: [...visit.payments, payment],
@@ -181,13 +151,11 @@ export interface BookingDraft {
    * the stylist sees it before starting, whoever takes the booking.
    */
   allergies?: string;
-  /** Present when the deposit was paid at checkout. */
-  payment?: OnlinePayment;
 }
 
 export const actions = {
-  /** Books a visit, creating or updating the client and, if paid, the receipt, in one step. */
-  book(draft: BookingDraft, now = new Date()): Result<{ visit: Visit; payment?: Payment }> {
+  /** Books a visit and creates or updates the client in one step. Nothing is paid until the client is at the salon. */
+  book(draft: BookingDraft, now = new Date()): Result<{ visit: Visit }> {
     const items = itemsFor(draft.serviceIds, (i) => newId(`i${i}`));
     if ("error" in items) return items;
     const minutes = items.reduce((sum, item) => sum + item.minutes, 0);
@@ -202,7 +170,7 @@ export const actions = {
     const createdAt = now.toISOString();
     const services = draft.serviceIds.map(serviceById).filter((s): s is Service => Boolean(s));
 
-    let visit: Visit = {
+    const visit: Visit = {
       id: newId("v"),
       number: visitNumber(state.counters.visit),
       customerId: customer.id,
@@ -221,16 +189,6 @@ export const actions = {
       rebookDue: rebookDue(services, parseLocal(draft.start)),
     };
 
-    let receiptCounter = state.counters.receipt;
-    let payment: Payment | undefined;
-    if (draft.payment) {
-      const result = paymentFor(state, visit, draft.payment, now);
-      if ("error" in result) return { error: result.error };
-      payment = result.payment;
-      receiptCounter = result.receiptCounter;
-      visit = withPayment(visit, payment);
-    }
-
     commit({
       ...state,
       customers,
@@ -239,23 +197,9 @@ export const actions = {
       device: state.session.customerId
         ? { ...state.device, branchId: draft.branchId }
         : { ...state.device, contact: draft.remember ? draft.contact : null, visitIds: [visit.id, ...state.device.visitIds], branchId: draft.branchId },
-      counters: { visit: state.counters.visit + 1, receipt: receiptCounter },
+      counters: { ...state.counters, visit: state.counters.visit + 1 },
     });
-    return { visit, payment };
-  },
-
-  /** Pays a deposit or balance on an existing visit. */
-  pay(visitId: string, pay: OnlinePayment, now = new Date()): Result<{ payment: Payment }> {
-    const visit = state.visits.find((v) => v.id === visitId);
-    if (!visit) return { error: "We couldn't find that booking." };
-    const result = paymentFor(state, visit, pay, now);
-    if ("error" in result) return result;
-    commit({
-      ...state,
-      visits: state.visits.map((v) => (v.id === visitId ? withPayment(v, result.payment) : v)),
-      counters: { ...state.counters, receipt: result.receiptCounter },
-    });
-    return { payment: result.payment };
+    return { visit };
   },
 
   /** Moves a booking to another time, with the same double-booking guard as a new one. */
@@ -624,7 +568,6 @@ export const desk = {
     for (const link of [next.salon.whatsappBusiness, next.salon.instagram, next.salon.tiktok]) {
       if (link.trim() && !/^https?:\/\/\S+$/.test(link.trim())) return { error: "Links must start with https://" };
     }
-    if (next.policies.depositRate < 0 || next.policies.depositRate > 1) return { error: "The deposit must be between 0% and 100%." };
     if (!Number.isInteger(next.policies.turnaroundMinutes) || next.policies.turnaroundMinutes < 0 || next.policies.turnaroundMinutes > 60) {
       return { error: "Clean-down time must be between 0 and 60 minutes." };
     }

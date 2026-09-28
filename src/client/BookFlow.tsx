@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowUp, CalendarDays, Check, Clock, Lock, Mail, MapPin, Phone, Plus, Send, Shuffle, UserRound, Wallet } from "lucide-react";
+import { AlertTriangle, ArrowUp, CalendarDays, Check, Clock, Mail, MapPin, Phone, Plus, Shuffle, Store, UserRound } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState, type InputHTMLAttributes, type ReactNode } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -9,24 +9,23 @@ import { Button, Cta, Dots } from "../components/Button";
 import { TopBar } from "../components/Chrome";
 import { useNotify } from "../components/Notify";
 import { SuccessScreen } from "../components/Overlays";
-import { PaystackSheet } from "../components/Paystack";
 import { DateStrip } from "../components/Pickers";
 import { useScrollTo } from "../components/Scroll";
 import { Sheet } from "../components/Sheet";
 import { BRANCHES, POLICIES, SALON } from "../data/business";
 import { GROUP_LABEL, GROUPS, ROLE_LABEL, SERVICES, serviceById } from "../data/catalog";
-import { accessOf, accountOf, actions, useAppData, type OnlinePayment } from "../data/store";
+import { accessOf, accountOf, actions, useAppData } from "../data/store";
 import type { Branch, ContactDetails, Service, Staff, Visit } from "../data/types";
 import { availabilityFor, leastBusy, openingOn, slotsFor, staffFor } from "../lib/booking";
 import { canViewVisit, cleanContact, contactFromCustomer, EMPTY_CONTACT, validateContact, type ContactErrors } from "../lib/checkout";
 import { formatGhPhone } from "../lib/contact";
 import { fmtDayLong, fmtDayShort, fmtTime, localIso, money, parseLocal, plural } from "../lib/format";
-import { depositFor, durationLabel, priceLabel } from "../lib/pricing";
+import { durationLabel, priceLabel } from "../lib/pricing";
 import { openStatus, dateStrip } from "../lib/schedule";
 import { spring } from "../motion";
 
-const STEP_TITLES = ["Choose your services", "Branch and stylist", "Date and time", "Your details", "Review and pay"] as const;
-const CRUMBS = ["Services", "Stylist", "Date & time", "Details", "Pay"] as const;
+const STEP_TITLES = ["Choose your services", "Branch and stylist", "Date and time", "Your details", "Review and book"] as const;
+const CRUMBS = ["Services", "Stylist", "Date & time", "Details", "Book"] as const;
 const DETAILS_STEP = 3;
 const REVIEW_STEP = 4;
 const FIELD_ORDER: (keyof ContactDetails)[] = ["name", "phone", "email", "area"];
@@ -64,14 +63,12 @@ export function BookFlow() {
   const [comments, setComments] = useState("");
   const [allergies, setAllergies] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [created, setCreated] = useState<{ id: string; number: string; receiptNo?: string; email: string } | null>(null);
+  const [created, setCreated] = useState<{ id: string; number: string } | null>(null);
 
   // Signed-in clients start from their account; guests from what this phone remembers, if anything.
   const [contact, setContact] = useState<ContactDetails>(() => (account ? contactFromCustomer(account) : data.device.contact ?? EMPTY_CONTACT));
   const [remember, setRemember] = useState(true);
   const [showErrors, setShowErrors] = useState(false);
-  const [payChoice, setPayChoice] = useState<"now" | "later">("now");
-  const [payOpen, setPayOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
 
   const scrollTo = useScrollTo();
@@ -84,8 +81,6 @@ export function BookFlow() {
   const minutes = chosen.reduce((sum, s) => sum + s.minutes, 0);
   const total = chosen.reduce((sum, s) => sum + s.price, 0);
   const hasFrom = chosen.some((s) => s.priceFrom);
-  const deposit = depositFor(total, POLICIES.depositRate);
-  const depositPct = Math.round(POLICIES.depositRate * 100);
   const eligible = useMemo(() => staffFor(data.staff, branch.id, chosen), [data.staff, branch.id, chosen]);
   const needsAllergyCheck = chosen.some((s) => CHEMICAL.has(s.id));
   const contactErrors = validateContact(contact);
@@ -133,8 +128,8 @@ export function BookFlow() {
 
   const back = () => (step > 0 ? setStep(step - 1) : navigate(-1));
 
-  /** Books the visit in one step: client record, visit and (when paid now) the receipt. Returns an error to show, or null. */
-  const book = (payment?: OnlinePayment): string | null => {
+  /** Books the visit and the client record in one step. Nothing is paid online. Returns an error to show, or null. */
+  const book = (): string | null => {
     if (!start) return "Pick a time";
     const people = freeAt(start);
     const staff: Staff | null = named ?? leastBusy(people, data.visits, parseLocal(start));
@@ -152,14 +147,12 @@ export function BookFlow() {
       remember: account ? false : remember,
       notes: comments.trim() || undefined,
       allergies: needsAllergyCheck ? allergies : undefined,
-      payment,
     });
     if ("error" in result) {
       if (result.error.includes("just booked") || result.error.includes("passed")) setStep(2);
       return result.error;
     }
-    setPayOpen(false);
-    setCreated({ id: result.visit.id, number: result.visit.number, receiptNo: result.payment?.receiptNo, email: clean.email });
+    setCreated({ id: result.visit.id, number: result.visit.number });
     return null;
   };
 
@@ -184,13 +177,7 @@ export function BookFlow() {
   const onSuccessDone = useCallback(() => {
     if (!created) return;
     navigate(`/visits/${created.id}`, { replace: true });
-    window.setTimeout(
-      () =>
-        created.receiptNo
-          ? notify("Deposit received", `Receipt ${created.receiptNo} for ${created.number} is ready. A copy is on its way to ${created.email}.`)
-          : notify("Booking received", `We've got ${created.number}. We'll confirm on WhatsApp.`),
-      700,
-    );
+    window.setTimeout(() => notify("Booking received", `We've got ${created.number}. We'll confirm on WhatsApp, and you pay at the salon.`), 700);
   }, [created, navigate, notify]);
 
   const cta =
@@ -200,8 +187,6 @@ export function BookFlow() {
       </Cta>
     ) : step === DETAILS_STEP ? (
       <Cta onClick={continueFromDetails}>Continue</Cta>
-    ) : payChoice === "now" ? (
-      <Cta onClick={() => setPayOpen(true)}>Pay {money(deposit)}</Cta>
     ) : (
       <Cta onClick={sendRequest} loading={submitting}>
         Book now
@@ -293,15 +278,11 @@ export function BookFlow() {
                   end={endDate}
                   total={total}
                   hasFrom={hasFrom}
-                  deposit={deposit}
-                  depositPct={depositPct}
                   contact={contact}
                   comments={comments}
                   setComments={setComments}
                   allergies={needsAllergyCheck ? allergies : ""}
                   onEditDetails={() => setStep(DETAILS_STEP)}
-                  payChoice={payChoice}
-                  setPayChoice={setPayChoice}
                 />
               )}
             </motion.div>
@@ -352,15 +333,9 @@ export function BookFlow() {
               <span>{money(total)}</span>
             </div>
             {chosen.length > 0 && (
-              <div className="kv muted t-cap">
-                <span>Deposit to hold your chair ({depositPct}%)</span>
-                <span>{money(deposit)}</span>
-              </div>
-            )}
-            {step === REVIEW_STEP && (
               <p className="info-line t-cap muted">
-                {payChoice === "now" ? <Lock size={14} /> : <Send size={14} />}
-                <span>{payChoice === "now" ? "Mobile Money or card through Paystack" : "Pay at the salon on the day"}</span>
+                <Store size={14} />
+                <span>Nothing to pay now. You pay at the salon.</span>
               </p>
             )}
             {missing && (
@@ -373,7 +348,7 @@ export function BookFlow() {
             </div>
           </div>
           <p className="t-cap subtle" style={{ textAlign: "center" }}>
-            {hasFrom ? "\"From\" prices are confirmed at the chair before we start." : "Your deposit comes off the bill on the day."}
+            {hasFrom ? "\"From\" prices are confirmed at the chair before we start." : "Pay at the salon after your visit: cash, MoMo or card."}
           </p>
         </aside>
       </div>
@@ -382,8 +357,11 @@ export function BookFlow() {
         <div className="sticky-bar-meta">
           {step === REVIEW_STEP ? (
             <>
-              <span className="subtle t-cap">{payChoice === "now" ? `Deposit today · total ${money(total)}` : "Pay at the salon"}</span>
-              <strong className="tabular">{money(payChoice === "now" ? deposit : total)}</strong>
+              <span className="subtle t-cap">Pay at the salon</span>
+              <strong className="tabular">
+                {hasFrom ? "from " : ""}
+                {money(total)}
+              </strong>
             </>
           ) : step === DETAILS_STEP ? (
             <>
@@ -407,9 +385,8 @@ export function BookFlow() {
         {cta}
       </div>
 
-      <PaystackSheet open={payOpen} onClose={() => setPayOpen(false)} amount={deposit} label="Deposit to hold your chair" email={contact.email} phone={contact.phone} onPaid={book} />
       <AccountSheet open={loginOpen} onClose={() => setLoginOpen(false)} mode="login" defaultPhone={contact.phone} />
-      <SuccessScreen open={Boolean(created)} title={created?.receiptNo ? "Deposit paid" : "You're booked"} onDone={onSuccessDone} />
+      <SuccessScreen open={Boolean(created)} title="You're booked" onDone={onSuccessDone} />
     </main>
   );
 }
@@ -729,7 +706,7 @@ function YourDetails({ contact, setContact, errors, accountName, remember, setRe
           { inputMode: "tel", autoComplete: "tel-national", placeholder: "024 123 4567", readOnly: Boolean(accountName) },
           accountName ? "Your account number. Contact the salon to change it." : "Your confirmation and reminders come here.",
         )}
-        {field("email", "Email", { type: "email", inputMode: "email", autoComplete: "email", placeholder: "ama@gmail.com" }, "Paystack sends your payment receipt here.")}
+        {field("email", "Email (optional)", { type: "email", inputMode: "email", autoComplete: "email", placeholder: "ama@gmail.com" }, "Only if you'd like the salon to have it. Confirmations come on WhatsApp.")}
         {field("area", "Town or area", { autoComplete: "address-level2", placeholder: "Weija" })}
       </section>
 
@@ -761,7 +738,7 @@ function YourDetails({ contact, setContact, errors, accountName, remember, setRe
   );
 }
 
-/* ---------------- Step 5: review and pay ---------------- */
+/* ---------------- Step 5: review and book ---------------- */
 
 interface ReviewProps {
   branch: Branch;
@@ -771,15 +748,11 @@ interface ReviewProps {
   end: Date | null;
   total: number;
   hasFrom: boolean;
-  deposit: number;
-  depositPct: number;
   contact: ContactDetails;
   comments: string;
   setComments: (v: string) => void;
   allergies: string;
   onEditDetails: () => void;
-  payChoice: "now" | "later";
-  setPayChoice: (p: "now" | "later") => void;
 }
 
 function Review(r: ReviewProps) {
@@ -845,29 +818,21 @@ function Review(r: ReviewProps) {
           <span>{r.hasFrom ? "Total, from" : "Total"}</span>
           <span>{money(r.total)}</span>
         </div>
-        <div className="kv muted">
-          <span>Deposit to hold your chair ({r.depositPct}%)</span>
-          <span>{money(r.deposit)}</span>
-        </div>
-      </section>
-
-      <section className="section">
-        <h2 className="t-h3">How do you want to pay?</h2>
-        <div className="stack gap-12" role="radiogroup" aria-label="When to pay">
-          <PlanCard selected={r.payChoice === "now"} onSelect={() => r.setPayChoice("now")} icon={<Wallet size={20} />} title={`Pay ${money(r.deposit)} deposit now`} body="Mobile Money or card through Paystack. It comes off your bill on the day." />
-          <PlanCard selected={r.payChoice === "later"} onSelect={() => r.setPayChoice("later")} icon={<Send size={20} />} title="Pay at the salon" body="Book free. We confirm on WhatsApp, and you pay everything on the day." />
-        </div>
+        <p className="info-line muted">
+          <Store size={16} />
+          <span>Nothing to pay now. Pay at the salon after your visit: cash, MoMo or card.</span>
+        </p>
       </section>
 
       <section className="section">
         <h2 className="t-h3">More details</h2>
         <div className="card card-pad stack gap-4">
           <p className="t-title">Cancellation policy</p>
-          <p className="muted">Free to cancel or move up to {POLICIES.cancelWindowHours} hours before. After that, or if you don't come, the deposit is kept.</p>
+          <p className="muted">Please cancel or move your booking at least {POLICIES.cancelWindowHours} hours before, so someone else can have the time. After that, call or WhatsApp the branch.</p>
         </div>
         <div className="card card-pad stack gap-4">
-          <p className="t-title">Deposit</p>
-          <p className="muted">A {r.depositPct}% deposit holds your chair and comes off your bill. "From" prices are confirmed at the chair before we start.</p>
+          <p className="t-title">Paying</p>
+          <p className="muted">You pay at the salon when you're done: cash, MoMo or card, with an official receipt. "From" prices are confirmed at the chair before we start.</p>
         </div>
         <div className="card card-pad stack gap-4">
           <p className="t-title">Important info</p>

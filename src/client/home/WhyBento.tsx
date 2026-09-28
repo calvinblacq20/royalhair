@@ -126,7 +126,7 @@ function KidsCard() {
 function PaymentsCard() {
   return (
     <div className="bento-card is-white is-tall">
-      <CardHead tag="Pay" icon={<Smartphone size={13} />} title="MoMo payments" body="Pay deposits and balances by mobile money, always matched to your visit." />
+      <CardHead tag="Pay" icon={<Smartphone size={13} />} title="Pay at the salon" body="Cash, MoMo or card at the desk after your visit. Nothing to pay online, and an official receipt every time." />
       <div className="momo-card">
         <div className="between">
           <span className="inline t-cap" style={{ gap: 6 }}>
@@ -156,7 +156,7 @@ function TrackingCard() {
   ];
   return (
     <div className="bento-card is-white">
-      <CardHead tag="Track" icon={<TrendingUp size={13} />} title="Your visits" body="Every booking, deposit and receipt in one place." />
+      <CardHead tag="Track" icon={<TrendingUp size={13} />} title="Your visits" body="Every booking and receipt in one place." />
       <div className="track-list">
         {rows.map((r) => (
           <div key={r.ref} className="track-row">

@@ -10,14 +10,13 @@ import { TopBar } from "../components/Chrome";
 import { MapCard } from "../components/MapCard";
 import { useNotify } from "../components/Notify";
 import { SuccessScreen } from "../components/Overlays";
-import { PaystackSheet } from "../components/Paystack";
 import { Sheet } from "../components/Sheet";
 import { branchById, POLICIES, SALON } from "../data/business";
-import { ROLE_LABEL, serviceById } from "../data/catalog";
-import { accessOf, accountOf, actions, customerById, useAppData, type OnlinePayment } from "../data/store";
+import { ROLE_LABEL, serviceById, servicePhoto } from "../data/catalog";
+import { accessOf, accountOf, actions, customerById, useAppData } from "../data/store";
 import type { Visit } from "../data/types";
 import { slotsFor } from "../lib/booking";
-import { amountDue, canViewVisit } from "../lib/checkout";
+import { canViewVisit } from "../lib/checkout";
 import { formatGhPhone, mapsLinks, telLink, whatsappLink } from "../lib/contact";
 import { addDays, fmtDate, fmtDayLong, fmtDayShort, fmtTime, money, parseLocal, plural, startOfDay } from "../lib/format";
 import { durationLabel } from "../lib/pricing";
@@ -102,7 +101,6 @@ function VisitView({ visit }: { visit: Visit }) {
   const now = new Date();
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [directionsOpen, setDirectionsOpen] = useState(false);
-  const [payOpen, setPayOpen] = useState(false);
   const [moveOpen, setMoveOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelling, setCancelling] = useState(false);
@@ -117,8 +115,7 @@ function VisitView({ visit }: { visit: Visit }) {
   const service = first ? serviceById(first.serviceId) : undefined;
   const title = service ? `${service.name}${visit.items.length > 1 ? ` + ${visit.items.length - 1} more` : ""}` : "Visit";
   const start = parseLocal(visit.start);
-  const due = amountDue(visit);
-  const action = nextAction(visit, now, due.amount);
+  const action = nextAction(visit, now);
   const badge = badgeFor(visit, now);
   const balance = balanceDue(visit);
   const paid = paidTotal(visit);
@@ -127,19 +124,8 @@ function VisitView({ visit }: { visit: Visit }) {
   const maps = mapsLinks(`${branch?.name ?? SALON.name} ${branch?.plusCode ?? branch?.address ?? ""}`);
   const phone = branch?.phone ?? SALON.phone;
   const waText = `Hi ${SALON.name}, it's ${customer?.name ?? "a client"} about booking ${visit.number} (${title}).`;
-  const payLabel = due.label === "deposit" ? `Pay ${money(due.amount)} deposit` : `Pay ${money(due.amount)} balance`;
   const late = isLateCancel(visit, now, POLICIES.cancelWindowHours);
 
-  const pay = useCallback(
-    (payment: OnlinePayment): string | null => {
-      const result = actions.pay(visit.id, payment);
-      if ("error" in result) return result.error;
-      setPayOpen(false);
-      window.setTimeout(() => notify("Payment received", `Receipt ${result.payment.receiptNo} is ready${customer?.email ? ` and on its way to ${customer.email}` : ""}.`), 400);
-      return null;
-    },
-    [visit.id, notify, customer?.email],
-  );
   const calendarEvent = upcoming
     ? {
         title: `${title} at ${SALON.name}`,
@@ -154,9 +140,6 @@ function VisitView({ visit }: { visit: Visit }) {
     switch (action?.cta?.kind) {
       case "whatsapp":
         window.open(whatsappLink(phone, waText), "_blank", "noopener");
-        break;
-      case "pay":
-        setPayOpen(true);
         break;
       case "calendar":
         setCalendarOpen(true);
@@ -241,7 +224,7 @@ function VisitView({ visit }: { visit: Visit }) {
       <TopBar back title={title} solidAfter={190} backRow="Back" />
 
       <div className="detail-hero">
-        <Photo tone={service?.tone ?? "mist"} src={service?.photo} alt={title} sizes="(min-width: 1024px) 1200px, 100vw" height={250} radius={0} markSize={110} />
+        <Photo tone={service?.tone ?? "mist"} src={service ? servicePhoto(service) : undefined} alt={title} sizes="(min-width: 1024px) 1200px, 100vw" height={250} radius={0} markSize={110} />
         <div className="scrim" />
         <button className="icon-btn mobile-only" style={{ left: 16 }} onClick={() => navigate(-1)} aria-label="Back">
           <ArrowLeft size={20} strokeWidth={1.8} />
@@ -348,15 +331,11 @@ function VisitView({ visit }: { visit: Visit }) {
                     <span>{money(balance)}</span>
                   </div>
                 )}
-                {visit.status !== "cancelled" && visit.status !== "no-show" && due.amount > 0 && (
-                  <>
-                    <Button variant="dark" block onClick={() => setPayOpen(true)} style={{ marginTop: 4 }}>
-                      {payLabel}
-                    </Button>
-                    <p className="inline t-cap subtle" style={{ justifyContent: "center", gap: 6 }}>
-                      <Lock size={13} /> Mobile Money or card through Paystack
-                    </p>
-                  </>
+                {visit.status !== "cancelled" && visit.status !== "no-show" && balance > 0 && (
+                  <p className="info-line t-cap muted" style={{ marginTop: 4 }}>
+                    <Store size={14} />
+                    <span>Pay at the salon: cash, MoMo or card. You get an official receipt here.</span>
+                  </p>
                 )}
               </div>
             </section>
@@ -391,7 +370,7 @@ function VisitView({ visit }: { visit: Visit }) {
               <div className="card">
                 <div className="card-pad stack gap-4">
                   <p className="t-title">Cancellation policy</p>
-                  <p className="muted">Free to cancel or move up to {POLICIES.cancelWindowHours} hours before. After that, or if you don't come, the deposit is kept.</p>
+                  <p className="muted">Please cancel or move your booking at least {POLICIES.cancelWindowHours} hours before, so someone else can have the time. After that, call or WhatsApp the branch.</p>
                 </div>
                 {live && (
                   <div className="list-card" style={{ paddingTop: 0 }}>
@@ -448,15 +427,6 @@ function VisitView({ visit }: { visit: Visit }) {
       </motion.div>
 
       <CalendarSheet open={calendarOpen} onClose={() => setCalendarOpen(false)} event={calendarEvent} uid={`${visit.number}-visit`} />
-      <PaystackSheet
-        open={payOpen}
-        onClose={() => setPayOpen(false)}
-        amount={due.amount}
-        label={`${due.label === "deposit" ? "Deposit" : "Balance"} for ${visit.number}`}
-        email={customer?.email ?? ""}
-        phone={customer?.phone ?? ""}
-        onPaid={pay}
-      />
       <AccountSheet open={accountOpen} onClose={() => setAccountOpen(false)} mode="create" defaultName={customer?.name} defaultPhone={customer ? formatGhPhone(customer.phone) : ""} />
       <MoveSheet open={moveOpen} onClose={() => setMoveOpen(false)} visit={visit} onMoved={(at) => notify("Booking moved", `Now ${fmtDayShort(parseLocal(at))} at ${fmtTime(parseLocal(at))}.`)} />
 
@@ -475,7 +445,7 @@ function VisitView({ visit }: { visit: Visit }) {
       <Sheet open={cancelOpen} onClose={() => setCancelOpen(false)} title="Are you sure you want to cancel?">
         <div className="stack gap-16">
           <div className="card" style={{ display: "flex", overflow: "hidden", background: "var(--ground)", boxShadow: "none" }}>
-            <Photo tone={service?.tone ?? "mist"} src={service?.photo} sizes="80px" height={96} radius={0} markSize={30} className="order-thumb" />
+            <Photo tone={service?.tone ?? "mist"} src={service ? servicePhoto(service) : undefined} sizes="80px" height={96} radius={0} markSize={30} className="order-thumb" />
             <div className="card-pad stack" style={{ padding: 12 }}>
               <p className="t-title">{title}</p>
               <p className="muted t-cap">{whenPhrase(visit, now)}</p>
@@ -484,14 +454,16 @@ function VisitView({ visit }: { visit: Visit }) {
               </p>
             </div>
           </div>
+          {late && (
+            <p className="info-line">
+              <Clock size={16} />
+              <span>This visit is less than {POLICIES.cancelWindowHours} hours away. Please message the branch too, so they can offer the time to someone else.</span>
+            </p>
+          )}
           {paid > 0 && (
             <p className="info-line">
               <ReceiptText size={16} />
-              <span>
-                {late
-                  ? `This visit is less than ${POLICIES.cancelWindowHours} hours away, so your ${money(paid)} deposit is kept. Message the branch if something came up.`
-                  : `Your ${money(paid)} deposit is refunded through Paystack to the Mobile Money number or card you paid with.`}
-              </span>
+              <span>You've paid {money(paid)} on this booking. The branch will sort out a refund with you.</span>
             </p>
           )}
           <p className="muted">Not sure? Talk to {branch?.name ?? SALON.name} first.</p>
