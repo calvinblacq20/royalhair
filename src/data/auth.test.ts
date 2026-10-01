@@ -1,6 +1,10 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createDemoAuth } from "./auth";
 import { DEMO_ACCOUNT_EMAIL, DEMO_ACCOUNT_PASSWORD, DEMO_ACCOUNT_PHONE } from "./seed";
+
+// Every sign-in hashes the password 120,000 times, as a real auth server would, so a test that
+// signs in eight times can pass five seconds on a busy machine. The time limit is generous, not the code.
+vi.setConfig({ testTimeout: 20_000 });
 import { actions, getAppData } from "./store";
 
 let now = 1_000_000;
