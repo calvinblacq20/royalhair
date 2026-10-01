@@ -2,7 +2,7 @@ import { CalendarDays, ChevronRight, ReceiptText, Smartphone } from "lucide-reac
 import { AnimatePresence, motion } from "motion/react";
 import { useMemo, useState, type ReactNode } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { AccountSheet, FindVisitSheet } from "../components/AccountSheets";
+import { FindVisitSheet } from "../components/AccountSheets";
 import { Photo, Skeleton, useSkeleton } from "../components/Bits";
 import { Button } from "../components/Button";
 import { branchById } from "../data/business";
@@ -22,7 +22,8 @@ export function Visits() {
   const loading = useSkeleton(550);
   const data = useAppData();
   const now = new Date();
-  const [sheet, setSheet] = useState<"find" | "login" | null>(null);
+  const [sheet, setSheet] = useState<"find" | null>(null);
+  const navigate = useNavigate();
 
   // Guests see visits booked or found on this phone; accounts see all of theirs.
   const account = accountOf(data);
@@ -77,7 +78,7 @@ export function Visits() {
                   <button className="link hit" onClick={() => setSheet("find")}>
                     Find a booking
                   </button>
-                  <button className="link hit" onClick={() => setSheet("login")}>
+                  <button className="link hit" onClick={() => navigate("/login?next=/visits")}>
                     Log in
                   </button>
                 </span>
@@ -133,7 +134,6 @@ export function Visits() {
       )}
 
       <FindVisitSheet open={sheet === "find"} onClose={() => setSheet(null)} />
-      <AccountSheet open={sheet === "login"} onClose={() => setSheet(null)} mode="login" />
     </main>
   );
 }

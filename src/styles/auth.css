@@ -1,0 +1,259 @@
+/* ---------- Log in, sign up and password pages ---------- */
+
+.auth {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--ground);
+}
+.auth-card {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: var(--ground);
+}
+
+/* Studio photo under an ink wash: the brand's own pictures, in the brand's darkest colour. */
+.auth-top {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: calc(12px + env(safe-area-inset-top, 0px)) var(--gutter) 108px;
+  background-color: var(--ink);
+  color: #fff;
+}
+.auth-top.is-bar { padding-bottom: 84px; }
+.auth-photo {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.auth-top::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(28, 23, 25, 0.5) 0%, rgba(28, 23, 25, 0.72) 55%, rgba(28, 23, 25, 0.9) 100%);
+}
+.auth-name { margin-top: 14px; font-size: 17px; font-weight: 500; letter-spacing: -0.01em; }
+.auth-tagline { margin-top: 2px; font-size: 13px; color: rgba(255, 255, 255, 0.75); }
+.auth-tagline::before { content: ""; display: inline-block; width: 6px; height: 6px; margin: 0 8px 1px 0; border-radius: 50%; background: var(--magenta); }
+.auth-back {
+  position: absolute;
+  left: max(8px, calc(var(--gutter) - 10px));
+  top: calc(10px + env(safe-area-inset-top, 0px));
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-pill);
+  color: #fff;
+  transition: background-color 0.2s;
+}
+.auth-back:hover { background: rgba(255, 255, 255, 0.1); }
+.auth-demo-tag {
+  position: absolute;
+  right: var(--gutter);
+  top: calc(20px + env(safe-area-inset-top, 0px));
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+  background: var(--magenta);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.auth-brand {
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  margin-top: 36px;
+  border-radius: 22px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+.auth-bar-title {
+  min-height: 44px;
+  padding-inline: 52px;
+  font-size: 20px;
+  line-height: 44px;
+  letter-spacing: -0.02em;
+  text-align: center;
+}
+
+/* The light sheet rises over the black with one deep curve, on the left only. */
+.auth-sheet {
+  position: relative;
+  flex: 1;
+  margin-top: -56px;
+  padding: 36px var(--gutter) calc(28px + var(--safe-bottom));
+  border-top-left-radius: 64px;
+  background: var(--ground);
+}
+.auth-head { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-bottom: 28px; text-align: center; }
+.auth-head h1 { font-size: 28px; line-height: 1.2; letter-spacing: -0.03em; }
+.auth-head p { max-width: 34ch; color: var(--ink-75); }
+
+.auth-form { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 420px; margin-inline: auto; }
+.auth-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+
+/* Labels sit above the fields; placeholders only add an example. */
+.auth-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.auth-label-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.auth-label { font-size: 13px; font-weight: 500; color: var(--ink); }
+.auth-input {
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+  border-radius: var(--r-16);
+  background: var(--surface);
+  box-shadow: var(--sh-soft);
+  transition: box-shadow 0.2s;
+}
+.auth-input:focus-within { box-shadow: 0 0 0 2px var(--ink); }
+.auth-input.is-invalid { box-shadow: 0 0 0 2px var(--danger); }
+.auth-input input {
+  flex: 1;
+  min-width: 0;
+  height: 52px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  font-size: 16px;
+  outline: none;
+}
+.auth-input input::placeholder { color: var(--ink-50); }
+/* Saved-password autofill keeps the card's colours instead of the browser's blue/yellow tint. */
+.auth-input input:-webkit-autofill,
+.auth-input input:-webkit-autofill:hover,
+.auth-input input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 100px var(--surface) inset;
+  -webkit-text-fill-color: var(--ink);
+  caret-color: var(--ink);
+}
+.sheet .auth-input input:-webkit-autofill,
+.sheet .auth-input input:-webkit-autofill:hover,
+.sheet .auth-input input:-webkit-autofill:focus { -webkit-box-shadow: 0 0 0 100px var(--ground) inset; }
+.auth-eye {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-right: 4px;
+  border-radius: var(--r-12);
+  color: var(--ink-75);
+}
+.auth-eye:hover { color: var(--ink); background: var(--ground); }
+.auth-msg { font-size: 12px; line-height: 1.4; color: var(--ink-50); }
+.auth-msg.is-error { color: var(--danger); }
+
+.auth-link {
+  position: relative;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--ink-25);
+}
+.auth-link:hover { text-decoration-color: var(--ink); }
+.auth-link::after { content: ""; position: absolute; inset: -10px -6px; }
+
+.auth-check { display: flex; align-items: flex-start; gap: 10px; min-height: 28px; font-size: 14px; cursor: pointer; }
+.auth-check input { flex: none; width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--ink); cursor: pointer; }
+
+.auth-alert {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: var(--r-12);
+  background: var(--danger-wash);
+  color: var(--danger);
+  font-size: 14px;
+}
+.auth-alert.is-ok { background: var(--magenta-wash); color: var(--ink); }
+.auth-alert .auth-link { align-self: flex-start; color: inherit; }
+
+.auth-form .btn-cta { width: 100%; height: 54px; }
+
+.auth-or {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--ink-50);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.auth-or::before,
+.auth-or::after { content: ""; flex: 1; height: 1px; background: var(--ink-12); }
+
+.auth-google {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 52px;
+  border-radius: var(--r-16);
+  background: var(--surface);
+  box-shadow: var(--sh-soft);
+  font-size: 15px;
+  font-weight: 500;
+  transition: box-shadow 0.2s, opacity 0.2s;
+}
+.auth-google:hover { box-shadow: var(--sh-float); }
+.auth-google:disabled { opacity: 0.6; cursor: progress; }
+
+.auth-switch { margin-top: 4px; font-size: 14px; color: var(--ink-75); text-align: center; }
+.auth-switch .auth-link { font-size: 14px; }
+
+.auth-sample {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 8px;
+  padding: 10px 12px;
+  border-radius: var(--r-12);
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--ink-75);
+  font-size: 12px;
+  text-align: center;
+}
+
+/* Inside the checkout sheet the forms sit on white, so the field cards take the ground colour. */
+.sheet .auth-input { background: var(--ground); box-shadow: none; }
+.sheet .auth-input:focus-within { box-shadow: 0 0 0 2px var(--ink); }
+.sheet .auth-input.is-invalid { box-shadow: 0 0 0 2px var(--danger); }
+.sheet .auth-google { background: var(--ground); box-shadow: none; }
+.sheet .auth-sample { background: var(--ground); }
+
+/* Wider screens: the same composition as a card in the middle of the page. */
+@media (min-width: 810px) {
+  .auth { align-items: center; justify-content: center; padding: 48px 24px; }
+  .auth-card {
+    flex: none;
+    width: min(100%, 480px);
+    overflow: hidden;
+    border-radius: var(--r-24);
+    box-shadow: var(--sh-deep);
+  }
+  .auth-top { padding-top: 16px; }
+  .auth-back { top: 12px; left: 12px; }
+  .auth-demo-tag { top: 22px; }
+  .auth-sheet { padding: 40px 36px 36px; }
+}

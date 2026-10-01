@@ -19,6 +19,10 @@ const ReceiptPage = lazy(() => import("./client/Receipt").then((m) => ({ default
 const Branches = lazy(() => import("./client/Branches").then((m) => ({ default: m.Branches })));
 const Privacy = lazy(() => import("./client/Legal").then((m) => ({ default: m.Privacy })));
 const Terms = lazy(() => import("./client/Legal").then((m) => ({ default: m.Terms })));
+const LoginPage = lazy(() => import("./client/Auth").then((m) => ({ default: m.LoginPage })));
+const SignUpPage = lazy(() => import("./client/Auth").then((m) => ({ default: m.SignUpPage })));
+const ForgotPasswordPage = lazy(() => import("./client/Auth").then((m) => ({ default: m.ForgotPasswordPage })));
+const ResetPasswordPage = lazy(() => import("./client/Auth").then((m) => ({ default: m.ResetPasswordPage })));
 // The owner side is its own download; clients never fetch it.
 // Left out of production builds until staff logins exist (src/data/env.ts). The condition is
 // written out here, not imported, so the build can drop the salon side's code entirely.
@@ -110,6 +114,10 @@ function ClientApp() {
               <Route path="profile" element={<Profile />} />
             </Route>
             <Route path="book" element={<BookFlow />} />
+            <Route path="login" element={<LoginPage />} />
+            <Route path="signup" element={<SignUpPage />} />
+            <Route path="forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="reset-password" element={<ResetPasswordPage />} />
             <Route element={<NavLayout />}>
               <Route path="visits/:visitId" element={<VisitDetail />} />
               <Route path="visits/:visitId/receipts/:paymentId" element={<ReceiptPage />} />

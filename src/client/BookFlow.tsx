@@ -2,7 +2,7 @@ import { AlertTriangle, ArrowUp, CalendarDays, Check, Clock, Mail, MapPin, Phone
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState, type InputHTMLAttributes, type ReactNode } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { AccountSheet } from "../components/AccountSheets";
+import { AccountSheet } from "../components/AccountSheet";
 import { AppIcon } from "../components/Brand";
 import { Skeleton, Stars, useSkeleton } from "../components/Bits";
 import { Button, Cta, Dots } from "../components/Button";

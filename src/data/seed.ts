@@ -14,7 +14,8 @@ export interface AppData {
   visits: Visit[];
   reviews: Review[];
   settings: SalonSettings;
-  session: { customerId: string | null };
+  /** `transient` sign-ins ("Remember me" unticked) end when the browser session does. */
+  session: { customerId: string | null; transient?: boolean };
   /** What this phone remembers without an account. */
   device: { contact: import("./types").ContactDetails | null; visitIds: string[]; branchId: string | null; savedServiceIds: string[] };
   counters: { visit: number; receipt: number };
@@ -22,6 +23,9 @@ export interface AppData {
 
 /** The sample account a demo can log in with (Naa Adjeley: visits, points and a hair record). */
 export const DEMO_ACCOUNT_PHONE = "024 501 2233";
+export const DEMO_ACCOUNT_EMAIL = "naa.adjeley@gmail.com";
+/** Demo-only password for the sample account, shown on the log in page so the demo can be tried. */
+export const DEMO_ACCOUNT_PASSWORD = "RoyalHair2026";
 
 /** Bump whenever the saved shape changes, so an old demo in someone's browser starts fresh. */
 export const SEED_VERSION = 5;

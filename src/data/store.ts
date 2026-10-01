@@ -17,12 +17,36 @@ function load(): AppData {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as AppData;
-      if (parsed.version === SEED_VERSION) return withDefaultPhotos(parsed);
+      if (parsed.version === SEED_VERSION) return withSession(withDefaultPhotos(parsed));
     }
   } catch (error) {
     console.warn("Could not read saved demo data, starting fresh.", error);
   }
   return createSeed(new Date());
+}
+
+/** Marks the browser session a "don't remember me" sign-in belongs to. */
+const LIVE_SESSION_KEY = "rh-session-live";
+
+/** A sign-in without "Remember me" ends once the browser session that made it is gone. */
+function withSession(data: AppData): AppData {
+  if (!data.session.transient) return data;
+  let live = false;
+  try {
+    live = sessionStorage.getItem(LIVE_SESSION_KEY) === data.session.customerId;
+  } catch {
+    live = false;
+  }
+  return live ? data : { ...data, session: { customerId: null } };
+}
+
+function markLiveSession(customerId: string | null) {
+  try {
+    if (customerId) sessionStorage.setItem(LIVE_SESSION_KEY, customerId);
+    else sessionStorage.removeItem(LIVE_SESSION_KEY);
+  } catch {
+    /* no sessionStorage (private mode or tests): the session simply isn't carried over */
+  }
 }
 
 /** Photos aren't editable, so a saved menu picks up photos added to the defaults later. */
@@ -263,7 +287,31 @@ export const actions = {
     return customer;
   },
 
+  /** Customer record for an email address, if the salon has one. */
+  customerForEmail(email: string): Customer | undefined {
+    const wanted = email.trim().toLowerCase();
+    return wanted ? state.customers.find((c) => c.email.trim().toLowerCase() === wanted) : undefined;
+  },
+
+  /**
+   * Signs in a customer the auth service has already checked. `remember: false` keeps the
+   * sign-in to this browser session only.
+   */
+  startSession(customerId: string, remember = true): Customer | null {
+    const customer = state.customers.find((c) => c.id === customerId);
+    if (!customer) return null;
+    const account = customer.hasAccount ? customer : { ...customer, hasAccount: true };
+    markLiveSession(remember ? null : customerId);
+    commit({
+      ...state,
+      customers: account === customer ? state.customers : state.customers.map((c) => (c.id === customerId ? account : c)),
+      session: remember ? { customerId } : { customerId, transient: true },
+    });
+    return account;
+  },
+
   logOut() {
+    markLiveSession(null);
     commit({ ...state, session: { customerId: null } });
   },
 

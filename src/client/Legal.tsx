@@ -82,7 +82,7 @@ export function Privacy() {
             <b>Your town or area</b>, so we can suggest the branch nearest to you.
           </li>
           <li>
-            <b>Your email</b>, only if you choose to give it.
+            <b>Your email</b>, only if you choose to give it or create an account. Account passwords are only ever stored scrambled: nobody at the salon can read them.
           </li>
           <li>
             <b>Your bookings and payments</b>: what you booked, when, with whom, what it cost and what you paid at the desk. We need these to run the salon and

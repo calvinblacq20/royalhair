@@ -2,15 +2,17 @@ import { CalendarDays, ChevronRight, Globe, Heart, LayoutDashboard, LifeBuoy, Lo
 import { motion } from "motion/react";
 import { useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { AccountSheet, FindVisitSheet } from "../components/AccountSheets";
+import { FindVisitSheet } from "../components/AccountSheets";
 import { Avatar, Skeleton, useSkeleton } from "../components/Bits";
 import { Button } from "../components/Button";
 import { useNotify } from "../components/Notify";
 import { Sheet } from "../components/Sheet";
+import { prefillAuthDraft } from "../data/authDraft";
 import { SALON } from "../data/business";
 import { SALON_SIDE } from "../data/env";
 import { accessOf, accountOf, actions, useAppData } from "../data/store";
 import type { Customer } from "../data/types";
+import { splitName } from "../lib/auth";
 import { visibleVisits } from "../lib/checkout";
 import { formatGhPhone, whatsappLink } from "../lib/contact";
 import { fmtDate, money } from "../lib/format";
@@ -45,8 +47,14 @@ export function Profile() {
 function GuestProfile() {
   const data = useAppData();
   const notify = useNotify();
-  const [sheet, setSheet] = useState<"login" | "create" | "find" | "device" | null>(null);
+  const navigate = useNavigate();
+  const [sheet, setSheet] = useState<"find" | "device" | null>(null);
   const remembered = data.device.contact;
+  // Details from a past booking on this phone start the sign-up form off.
+  const toAccount = (page: "/login" | "/signup") => {
+    if (remembered) prefillAuthDraft({ ...splitName(remembered.name), email: remembered.email, phone: remembered.phone });
+    navigate(`${page}?next=/profile`);
+  };
   const onPhone = visibleVisits(data.visits, accessOf(data));
 
   return (
@@ -65,12 +73,12 @@ function GuestProfile() {
 
           <motion.section className="account-card" style={{ marginTop: 24 }} {...enter(24, 0.05)}>
             <p className="t-title">Save your visits (optional)</p>
-            <p className="muted">Log in with your WhatsApp number to see every visit, your receipts and loyalty points on any phone. No password.</p>
+            <p className="muted">Create an account to see every visit, your receipts and loyalty points on any phone.</p>
             <div className="account-card-actions">
-              <Button variant="magenta" size="sm" onClick={() => setSheet("create")}>
+              <Button variant="magenta" size="sm" onClick={() => toAccount("/signup")}>
                 Create account
               </Button>
-              <Button variant="ghost-dark" size="sm" onClick={() => setSheet("login")}>
+              <Button variant="ghost-dark" size="sm" onClick={() => toAccount("/login")}>
                 Log in
               </Button>
             </div>
@@ -97,7 +105,6 @@ function GuestProfile() {
         </div>
       </div>
 
-      <AccountSheet open={sheet === "login" || sheet === "create"} onClose={() => setSheet(null)} mode={sheet === "create" ? "create" : "login"} defaultName={remembered?.name} defaultPhone={remembered?.phone} />
       <FindVisitSheet open={sheet === "find"} onClose={() => setSheet(null)} />
 
       <Sheet open={sheet === "device"} onClose={() => setSheet(null)} title="Details on this phone">

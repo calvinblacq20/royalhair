@@ -1,8 +1,8 @@
 import { ArrowLeft, Ban, CalendarPlus, Check, ChevronRight, CircleAlert, Clock, Lock, MessageCircle, Navigation, Phone, ReceiptText, RefreshCw, RotateCcw, Store } from "lucide-react";
 import { motion } from "motion/react";
 import { useCallback, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { AccountSheet, FindVisitSheet } from "../components/AccountSheets";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { FindVisitSheet } from "../components/AccountSheets";
 import { CalendarSheet } from "../components/ActionSheets";
 import { Badge, Photo, Skeleton, useSkeleton } from "../components/Bits";
 import { Button } from "../components/Button";
@@ -11,10 +11,12 @@ import { MapCard } from "../components/MapCard";
 import { useNotify } from "../components/Notify";
 import { SuccessScreen } from "../components/Overlays";
 import { Sheet } from "../components/Sheet";
+import { prefillAuthDraft } from "../data/authDraft";
 import { branchById, POLICIES, SALON } from "../data/business";
 import { ROLE_LABEL, serviceById, servicePhoto } from "../data/catalog";
 import { accessOf, accountOf, actions, customerById, useAppData } from "../data/store";
 import type { Visit } from "../data/types";
+import { splitName } from "../lib/auth";
 import { slotsFor } from "../lib/booking";
 import { canViewVisit } from "../lib/checkout";
 import { formatGhPhone, mapsLinks, telLink, whatsappLink } from "../lib/contact";
@@ -54,7 +56,8 @@ export function VisitDetail() {
 
 function NotOnThisPhone() {
   const [findOpen, setFindOpen] = useState(false);
-  const [loginOpen, setLoginOpen] = useState(false);
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
   return (
     <main className="screen">
       <TopBar back alwaysSolid />
@@ -70,11 +73,10 @@ function NotOnThisPhone() {
           <Button variant="dark" onClick={() => setFindOpen(true)}>
             Find my booking
           </Button>
-          <Button onClick={() => setLoginOpen(true)}>Log in</Button>
+          <Button onClick={() => navigate(`/login?next=${encodeURIComponent(pathname)}`)}>Log in</Button>
         </div>
       </div>
       <FindVisitSheet open={findOpen} onClose={() => setFindOpen(false)} />
-      <AccountSheet open={loginOpen} onClose={() => setLoginOpen(false)} mode="login" />
     </main>
   );
 }
@@ -105,7 +107,6 @@ function VisitView({ visit }: { visit: Visit }) {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [cancelledShow, setCancelledShow] = useState(false);
-  const [accountOpen, setAccountOpen] = useState(false);
   const customer = customerById(data, visit.customerId);
   const account = accountOf(data);
   const branch = branchById(visit.branchId);
@@ -260,7 +261,15 @@ function VisitView({ visit }: { visit: Visit }) {
             <p className="t-title">Keep this booking on any phone</p>
             <p className="muted">Optional. Save an account with {formatGhPhone(customer.phone)} and your visits and receipts go wherever you log in.</p>
             <div className="account-card-actions">
-              <Button variant="magenta" size="sm" onClick={() => setAccountOpen(true)}>
+              <Button
+                variant="magenta"
+                size="sm"
+                onClick={() => {
+                  // Start the form off with what the salon already has for this booking.
+                  prefillAuthDraft({ ...splitName(customer.name), email: customer.email, phone: formatGhPhone(customer.phone) });
+                  navigate(`/signup?next=${encodeURIComponent(`/visits/${visit.id}`)}`);
+                }}
+              >
                 Create account
               </Button>
             </div>
@@ -427,7 +436,6 @@ function VisitView({ visit }: { visit: Visit }) {
       </motion.div>
 
       <CalendarSheet open={calendarOpen} onClose={() => setCalendarOpen(false)} event={calendarEvent} uid={`${visit.number}-visit`} />
-      <AccountSheet open={accountOpen} onClose={() => setAccountOpen(false)} mode="create" defaultName={customer?.name} defaultPhone={customer ? formatGhPhone(customer.phone) : ""} />
       <MoveSheet open={moveOpen} onClose={() => setMoveOpen(false)} visit={visit} onMoved={(at) => notify("Booking moved", `Now ${fmtDayShort(parseLocal(at))} at ${fmtTime(parseLocal(at))}.`)} />
 
       <Sheet open={directionsOpen} onClose={() => setDirectionsOpen(false)} title="Get directions">
