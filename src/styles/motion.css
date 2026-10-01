@@ -223,11 +223,6 @@
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
-.live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--magenta); animation: live-pulse 2s ease-out infinite; }
-@keyframes live-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(252, 90, 163, 0.55); }
-  100% { box-shadow: 0 0 0 10px rgba(252, 90, 163, 0); }
-}
 .receipt-mini { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-radius: var(--r-16); background: #fff; box-shadow: var(--sh-soft); }
 .pill-pink { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; color: var(--label-magenta); }
 

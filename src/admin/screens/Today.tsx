@@ -1,4 +1,4 @@
-import { ArrowRight, CalendarDays, Check, ChevronRight, Table2 } from "lucide-react";
+import { AlertTriangle, ArrowRight, CalendarDays, Check, ChevronRight, Table2 } from "lucide-react";
 import { motion } from "motion/react";
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -190,7 +190,6 @@ export function Today() {
       title="Today"
       status={
         <>
-          <span className={`adm-dot ${open.open ? "is-open" : ""}`} aria-hidden="true" />
           {fmtDayLong(now)} · {open.label} · {inChair} in the chair
         </>
       }
@@ -387,7 +386,11 @@ function VisitRow({ visit: v, now, onOpen }: { visit: Visit; now: Date; onOpen: 
       <span className="grow stack">
         <span className="truncate" style={{ fontWeight: 500 }}>
           {customer ? <Link to={`/admin/clients/${customer.id}`}>{customer.name}</Link> : "Client"}
-          {customer?.hair?.allergies && <span className="allergy-dot" title="Allergy on record" aria-label="Allergy on record" />}
+          {customer?.hair?.allergies && (
+            <span className="allergy-tag" title={customer.hair.allergies}>
+              <AlertTriangle size={12} aria-hidden="true" /> Allergy
+            </span>
+          )}
         </span>
         <span className="t-cap muted truncate">
           <button className="adm-link" style={{ fontWeight: 400 }} onClick={onOpen}>

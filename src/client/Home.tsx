@@ -503,10 +503,7 @@ function SalonPage() {
               const sample = new Date(2026, 0, 4 + dow);
               return (
                 <div key={dow} className="between" style={{ fontWeight: today ? 500 : 400 }}>
-                  <span className="inline" style={{ gap: 10 }}>
-                    <span className="hours-dot" style={{ background: span ? "var(--open)" : "var(--ink-25)" }} />
-                    {weekdayLong(sample)}
-                  </span>
+                  <span>{weekdayLong(sample)}</span>
                   <span className="tabular" style={{ color: span ? undefined : "var(--ink-62)" }}>
                     {span ? `${span[0]} – ${span[1]}` : "Closed"}
                   </span>

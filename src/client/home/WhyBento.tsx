@@ -129,9 +129,7 @@ function PaymentsCard() {
       <CardHead tag="Pay" icon={<Smartphone size={13} />} title="Pay at the salon" body="Cash, MoMo or card at the desk after your visit. Nothing to pay online, and an official receipt every time." />
       <div className="momo-card">
         <div className="between">
-          <span className="inline t-cap" style={{ gap: 6 }}>
-            <span className="live-dot" /> MoMo received
-          </span>
+          <span className="t-cap">MoMo received</span>
           <span className="t-cap subtle">1 min ago</span>
         </div>
         <div className="momo-amount">

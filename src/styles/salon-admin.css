@@ -19,13 +19,15 @@
   line-height: 1.45;
 }
 .allergy-alert svg { flex: none; margin-top: 2px; }
-.allergy-dot {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
+/* Shown beside a client's name on Today: a word and a warning sign, not a coloured dot. */
+.allergy-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   margin-left: 8px;
-  border-radius: 50%;
-  background: var(--danger);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--danger);
   vertical-align: middle;
 }
 textarea.has-allergy { color: var(--danger); }

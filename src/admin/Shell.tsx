@@ -202,10 +202,7 @@ function AdminTabBar() {
         {tab(TABS[2]!)}
         <button className={`tab ${inMore ? "is-active" : ""}`} onClick={() => setMoreOpen(true)} aria-haspopup="dialog">
           {inMore && <motion.span layoutId="adm-tab-hl" className="tab-hl" transition={spring.press} />}
-          <span style={{ position: "relative" }}>
-            <Ellipsis size={22} strokeWidth={inMore ? 2 : 1.6} />
-            {attention.reviews > 0 && <span className="adm-bell-dot" style={{ top: -6, right: -10 }} aria-hidden="true" />}
-          </span>
+          <Ellipsis size={22} strokeWidth={inMore ? 2 : 1.6} />
           <span>More</span>
         </button>
       </nav>

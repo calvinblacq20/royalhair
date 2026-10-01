@@ -222,8 +222,6 @@ body:has(.adm) { background: var(--ground); }
   .adm-title-row h1 { font-size: 40px; letter-spacing: -0.035em; }
 }
 .adm-status { display: inline-flex; align-items: center; gap: 8px; margin-top: 4px; font-size: 13px; color: var(--ink-75); }
-.adm-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-25); flex: none; }
-.adm-dot.is-open { background: var(--open); }
 .adm-title-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .adm-title-actions .btn-cta { height: 48px; padding-block: 4px; }
 .adm-title-actions .btn-cta .cta-square { width: 38px; height: 38px; }
@@ -743,10 +741,7 @@ a.adm-row:hover, button.adm-row:hover { background: var(--ground); }
 /* ---------- Mobile tab bar ---------- */
 .adm-tabbar { position: fixed; left: 0; right: 0; bottom: 0; }
 .adm-tabbar .tabbar { grid-template-columns: repeat(5, 1fr); max-width: 520px; margin-inline: auto; }
-/* On the "More" tab the attention badge is a plain dot, not a big pink blob. */
-.adm-tabbar .adm-bell-dot { min-width: 0; width: 9px; height: 9px; padding: 0; top: -2px !important; right: -4px !important; box-shadow: 0 0 0 2px var(--glass); border-radius: 50%; background: var(--magenta); font-size: 0; overflow: hidden; text-shadow: none; }
 .adm-tab-plus { display: grid; place-items: center; }
-.adm-tabbar .adm-bell-dot { min-width: 8px; width: 8px; height: 8px; padding: 0; }
 .adm-tab-plus span { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: var(--ink); color: var(--magenta); box-shadow: var(--sh-float); }
 
 .adm-sheet-nav .row { font-size: 15px; }
