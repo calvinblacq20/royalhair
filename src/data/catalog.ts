@@ -47,6 +47,7 @@ export function defaultServices(): Service[] {
       repeatWeeks: 6,
       featured: true,
       tone: "magenta",
+      photo: "/photos/stock-knotless.webp",
     },
     {
       id: "s-cornrows",
@@ -59,6 +60,7 @@ export function defaultServices(): Service[] {
       bookable: true,
       repeatWeeks: 4,
       tone: "plum",
+      photo: "/photos/stock-cornrows.webp",
     },
     {
       id: "s-weave",
@@ -122,6 +124,7 @@ export function defaultServices(): Service[] {
       bookable: true,
       repeatWeeks: 4,
       tone: "sage",
+      photo: "/photos/stock-treatment.webp",
     },
     {
       id: "s-washset",
@@ -133,6 +136,7 @@ export function defaultServices(): Service[] {
       bookable: true,
       repeatWeeks: 2,
       tone: "champagne",
+      photo: "/photos/stock-washset.webp",
     },
     {
       id: "s-locs",
@@ -172,6 +176,7 @@ export function defaultServices(): Service[] {
       bookable: true,
       repeatWeeks: 2,
       tone: "mist",
+      photo: "/photos/stock-shapeup.webp",
     },
     {
       id: "s-beard",
@@ -183,6 +188,7 @@ export function defaultServices(): Service[] {
       bookable: true,
       repeatWeeks: 3,
       tone: "ink",
+      photo: "/photos/stock-beard.webp",
     },
     {
       id: "s-dye",
@@ -194,6 +200,7 @@ export function defaultServices(): Service[] {
       bookable: true,
       repeatWeeks: 4,
       tone: "plum",
+      photo: "/photos/stock-dye.webp",
     },
 
     // ---------------- Nails ----------------
@@ -257,6 +264,7 @@ export function defaultServices(): Service[] {
       bookable: true,
       repeatWeeks: 0,
       tone: "plum",
+      photo: "/photos/stock-nailart.webp",
     },
 
     // ---------------- Spa ----------------
@@ -271,6 +279,7 @@ export function defaultServices(): Service[] {
       repeatWeeks: 4,
       featured: true,
       tone: "sage",
+      photo: "/photos/stock-massage.webp",
     },
     {
       id: "s-backmassage",
@@ -282,6 +291,7 @@ export function defaultServices(): Service[] {
       bookable: true,
       repeatWeeks: 3,
       tone: "mist",
+      photo: "/photos/stock-backmassage.webp",
     },
     {
       id: "s-facial",
@@ -293,6 +303,7 @@ export function defaultServices(): Service[] {
       bookable: true,
       repeatWeeks: 4,
       tone: "blush",
+      photo: "/photos/stock-facial.webp",
     },
     {
       id: "s-scrub",
@@ -304,6 +315,7 @@ export function defaultServices(): Service[] {
       bookable: true,
       repeatWeeks: 6,
       tone: "champagne",
+      photo: "/photos/stock-scrub.webp",
     },
 
     // ---------------- Kids ----------------
@@ -344,6 +356,7 @@ export function defaultServices(): Service[] {
       bookable: true,
       repeatWeeks: 3,
       tone: "champagne",
+      photo: "/photos/stock-kidswash.webp",
       roles: ["stylist", "manager"],
     },
   ];
@@ -351,13 +364,13 @@ export function defaultServices(): Service[] {
 
 /**
  * One photo per part of the menu, all stills from the salon's own TikTok posts
- * (docs/photo-sources.md). Spa has no treatment photo yet, so it shows the salon's decor wall.
+ * (docs/photo-sources.md), except spa, which uses a stock photo until the salon has its own.
  */
 export const GROUP_PHOTO: Record<ServiceGroup, { src: string; alt: string }> = {
   hair: { src: "/photos/silk-press.webp", alt: "A stylist combing out a sleek silk-press bob" },
   barbering: { src: "/photos/barbershop-pole.webp", alt: "The barber pole on the salon's red wall" },
   nails: { src: "/photos/nails-red.webp", alt: "Red stiletto nails with bow details" },
-  spa: { src: "/photos/decor-wall.webp", alt: "A calm purple wall with plants inside the salon" },
+  spa: { src: "/photos/stock-spa.webp", alt: "A smiling woman in a white robe and towel with a cup of tea at a spa" },
   kids: { src: "/photos/barber-kid-cut.webp", alt: "A barber giving a young client a haircut" },
 };
 

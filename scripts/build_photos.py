@@ -105,10 +105,16 @@ def main() -> None:
         if img is None:
             print(f"skip {name}: unreadable")
             continue
-        img = trim_letterbox(img)
+        # Stock photos (scripts/fetch_stock_photos.py) are already clean and professionally lit:
+        # trimming "black bands" could crop a dark studio background, and sharpening only hurts.
+        stock = name.startswith("stock-")
+        if not stock:
+            img = trim_letterbox(img)
         upscaled_path = UPSCALED / f"{name}.png"
         upscaled = cv2.imread(str(upscaled_path)) if upscaled_path.exists() else None
-        if upscaled is not None:
+        if stock:
+            pass
+        elif upscaled is not None:
             # Blend a little of the original back in so skin and fabric keep natural grain.
             original_big = cv2.resize(img, (upscaled.shape[1], upscaled.shape[0]), interpolation=cv2.INTER_LANCZOS4)
             img = enhance(cv2.addWeighted(upscaled, 0.82, original_big, 0.18, 0), was_upscaled=True)

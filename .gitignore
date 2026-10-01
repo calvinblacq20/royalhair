@@ -20,3 +20,6 @@ brand/social/sheets/
 
 # Upscaling model (62 MB, re-download per scripts/upscale_photos.py)
 brand/models/
+
+# Stock photo originals: re-downloaded by scripts/fetch_stock_photos.py (docs/photo-sources.md)
+brand/photos-original/stock-*.jpg

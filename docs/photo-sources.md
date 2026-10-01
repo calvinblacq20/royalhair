@@ -56,5 +56,35 @@ Post links follow `https://www.tiktok.com/@royalhairgh/video/<post id>`.
 - Instagram ([@royalhair_gh](https://www.instagram.com/royalhair_gh/)): its public posts are three
   hiring flyers and nine reels, seven of them the same videos as TikTok. Two nail reels are new, but
   Instagram only serves their covers logged-out, at 360×640 (kept in `brand/social/instagram/`).
-- No photo for the spa treatments themselves (massage, facial, scrub): none has been posted. The Spa
-  tile shows the salon's purple decor wall until there is one.
+- No photo for the spa treatments themselves (massage, facial, scrub): none has been posted. They
+  now use stock photos (below) until the salon has its own.
+
+## Stock photos (stand-ins)
+
+Thirteen services had no photo the salon had posted, and the spa had none at all. These are filled
+with stock photos of Black clients from Unsplash, chosen on 1 October 2026 at Calvin's request.
+
+- **Licence:** the Unsplash License: free for commercial use, no attribution required, no Unsplash+
+  photos. It does not sell the photos or imply the people in them endorse the salon, and Unsplash
+  gives no model releases, which is why the kids' slot shows a styled puff rather than a child's face.
+- **They show other people, not Royal Hair's work.** Replace each with the salon's own photo when
+  one exists: drop it in `brand/photos-original/` under the same service, update `src/data/catalog.ts`,
+  and run `python scripts/build_photos.py`.
+- Originals are not in git (`.gitignore`); `python scripts/fetch_stock_photos.py` downloads them again.
+
+| File | Used for | Photographer | Unsplash |
+|---|---|---|---|
+| stock-knotless | Knotless braids | Gustavo Spindula | [M0NkWmz98o8](https://unsplash.com/photos/M0NkWmz98o8) |
+| stock-cornrows | Cornrows | Michael Kyule | [GNTELmdMvFM](https://unsplash.com/photos/GNTELmdMvFM) |
+| stock-treatment | Deep conditioning treatment | Vladimir Yelizarov | [h6Ag_2fhlUo](https://unsplash.com/photos/h6Ag_2fhlUo) |
+| stock-washset | Wash & set | Good Faces | [62wQhEghaw0](https://unsplash.com/photos/62wQhEghaw0) |
+| stock-shapeup | Shape-up | Kingsley Osei-Abrah | [9KmzY22Tz-4](https://unsplash.com/photos/9KmzY22Tz-4) |
+| stock-beard | Beard trim & shave | Osheen Turnbull | [85rUAzBoRSo](https://unsplash.com/photos/85rUAzBoRSo) |
+| stock-dye | Men's dye | Julian Myles | [I2g6Oe9ElbE](https://unsplash.com/photos/I2g6Oe9ElbE) |
+| stock-nailart | Nail art | Budka Damdinsuren | [jRXxNpA6d_k](https://unsplash.com/photos/jRXxNpA6d_k) |
+| stock-massage | Full body massage | Taylor Heery | [M7n7YTkPAfA](https://unsplash.com/photos/M7n7YTkPAfA) |
+| stock-backmassage | Back, neck & shoulders | Iwaria Inc. | [VWELT4w5jj8](https://unsplash.com/photos/VWELT4w5jj8) |
+| stock-facial | Facial | Ben Masora | [O3D_mUpZzcM](https://unsplash.com/photos/O3D_mUpZzcM) |
+| stock-scrub | Body scrub | Iwaria Inc. | [Bv826LRAgIc](https://unsplash.com/photos/Bv826LRAgIc) |
+| stock-kidswash | Kids' wash & style | Nina Strehl | [7O1YZkFsNf0](https://unsplash.com/photos/7O1YZkFsNf0) |
+| stock-spa | Spa section photo | Vladimir Yelizarov | [crnAlC9fcqE](https://unsplash.com/photos/crnAlC9fcqE) |
