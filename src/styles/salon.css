@@ -44,11 +44,11 @@
   color: var(--ink);
 }
 .group-tile svg { opacity: 0.8; }
-.group-tile.tone-magenta { --tone-a: #ffc2dd; --tone-b: #fbe9f1; color: var(--magenta-deep); }
-.group-tile.tone-ink { --tone-a: #2a2326; --tone-b: #4a3f44; color: #fff; }
-.group-tile.tone-blush { --tone-a: #f7dfe4; --tone-b: #ead9c4; }
-.group-tile.tone-sage { --tone-a: #b7c9b4; --tone-b: #e7eee5; }
-.group-tile.tone-champagne { --tone-a: #ead9c4; --tone-b: #f6efe6; }
+.group-tile.tone-magenta { --tone-a: #ffc2dd; --tone-b: #ebeff5; color: var(--magenta-deep); }
+.group-tile.tone-ink { --tone-a: #35363b; --tone-b: #4d4f57; color: #fff; }
+.group-tile.tone-blush { --tone-a: #fae9e6; --tone-b: #e0c5b6; }
+.group-tile.tone-sage { --tone-a: #b8deff; --tone-b: #ebeff5; }
+.group-tile.tone-champagne { --tone-a: #e0c5b6; --tone-b: #ebeff5; }
 .group-tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 
 .service-price { align-items: flex-end; flex: none; }

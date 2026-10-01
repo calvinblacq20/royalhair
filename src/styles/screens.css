@@ -43,10 +43,9 @@
   position: absolute;
   right: 16px;
   bottom: 40px;
-  padding: 2px 10px;
-  border-radius: var(--r-pill);
-  background: rgba(28, 23, 25, 0.55);
   color: #fff;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 0 14px rgba(0, 0, 0, 0.4);
 }
 
 .intro {
@@ -145,14 +144,12 @@
 }
 .look-label {
   position: absolute;
-  left: 10px;
+  left: 12px;
   bottom: 10px;
-  padding: 4px 12px;
-  border-radius: var(--r-pill);
-  background: var(--surface);
-  color: var(--ink);
-  font-size: 13px;
-  box-shadow: var(--sh-soft);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 0 14px rgba(0, 0, 0, 0.4);
 }
 
 /* One white panel holding every style row: no gaps or divider lines between rows. */
@@ -323,7 +320,7 @@
 
 /* ---------- Order detail ---------- */
 .detail-hero { position: relative; margin-top: -60px; margin-inline: calc(var(--gutter) * -1); }
-.detail-hero .scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(28, 23, 25, 0.25) 0%, transparent 35%, transparent 55%, rgba(28, 23, 25, 0.55) 100%); }
+.detail-hero .scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(36, 36, 38, 0.25) 0%, transparent 35%, transparent 55%, rgba(36, 36, 38, 0.55) 100%); }
 .detail-hero h1 { position: absolute; left: 16px; right: 16px; bottom: 36px; color: #fff; font-size: 30px; line-height: 1.15; letter-spacing: -0.03em; }
 .detail-hero .icon-btn { position: absolute; top: 14px; }
 .detail-body {

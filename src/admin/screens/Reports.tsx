@@ -14,7 +14,7 @@ import { INK, TrendCard, usePeriod, useScopedVisits } from "./Today";
 
 const REPORT_METRICS: MetricId[] = ["visits", "newClients", "avgSpend", "noShows"];
 const SPARK_METRICS: MetricId[] = ["cash", "visits", "newClients", "noShows"];
-const PLUM = "#7b3f6b";
+const PLUM = "#c0adff";
 
 export function Reports() {
   const data = useAppData();

@@ -40,21 +40,23 @@ function AuthShell({ variant, title, photo, children }: { variant: "brand" | "ba
     <main className="auth">
       <div className="auth-card">
         <header className={`auth-top ${variant === "bar" ? "is-bar" : ""}`}>
-          <img className="auth-photo" src={shot.src} srcSet={photoSrcSet(shot.src)} sizes="(min-width: 810px) 480px, 100vw" alt="" fetchPriority="high" style={{ objectPosition: shot.position }} />
+          <img className="auth-photo" src={shot.src} srcSet={photoSrcSet(shot.src)} sizes="(min-width: 1024px) 55vw, (min-width: 810px) 480px, 100vw" alt="" fetchPriority="high" style={{ objectPosition: shot.position }} />
           <button type="button" className="auth-back" onClick={back} aria-label="Back">
             <ArrowLeft size={22} strokeWidth={1.8} />
           </button>
-          {variant === "bar" ? (
-            <h1 className="auth-bar-title">{title}</h1>
-          ) : (
-            <>
-              <span className="auth-brand" aria-hidden="true">
-                <LogoMark size={40} />
-              </span>
-              <p className="auth-name">{SALON.name}</p>
-              <p className="auth-tagline">{SALON.tagline}</p>
-            </>
+          {variant === "bar" && (
+            <p className="auth-bar-title" aria-hidden="true">
+              {title}
+            </p>
           )}
+          {/* On phones the brand shows on the log in page only; on wide screens it fills the photo side of every page. */}
+          <div className="auth-identity">
+            <span className="auth-brand" aria-hidden="true">
+              <LogoMark size={40} />
+            </span>
+            <p className="auth-name">{SALON.name}</p>
+            <p className="auth-tagline">{SALON.tagline}</p>
+          </div>
           {auth.kind === "demo" && (
             <span className="auth-demo-tag" title="Accounts in this preview are saved on this device only">
               Demo
@@ -62,6 +64,7 @@ function AuthShell({ variant, title, photo, children }: { variant: "brand" | "ba
           )}
         </header>
         <motion.section className="auth-sheet" {...enter(16)}>
+          {variant === "bar" && <h1 className="auth-sheet-title">{title}</h1>}
           {children}
         </motion.section>
       </div>

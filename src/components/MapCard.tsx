@@ -19,7 +19,7 @@ export function MapCard({ branch, now = new Date() }: { branch: Branch; now?: Da
     <div className="card" style={{ overflow: "hidden" }}>
       <div className="map" aria-hidden="true">
         <svg viewBox="0 0 400 168" preserveAspectRatio="xMidYMid slice">
-          <rect width="400" height="168" fill="#ededef" />
+          <rect width="400" height="168" fill="#e4e9f1" />
           <path d="M-10 120 C 80 100, 140 140, 230 110 S 360 70, 420 90" stroke="#fff" strokeWidth="14" fill="none" />
           <path d="M150 -10 C 170 60, 160 110, 190 180" stroke="#fff" strokeWidth="9" fill="none" />
           <path d="M-10 40 L 420 58" stroke="#fff" strokeWidth="6" fill="none" />

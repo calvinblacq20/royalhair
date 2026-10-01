@@ -54,7 +54,7 @@ interface CtaProps {
 }
 
 // The logo's own pinks. Ink text on the bright fill is 6:1; white text on the deep one is 5.4:1.
-const INK = "#1c1719";
+const INK = "#242426";
 const PINK = "#fc5aa3";
 const DEEP = "#d10d58";
 const textOn = (background: string) => (background === PINK ? INK : "#ffffff");

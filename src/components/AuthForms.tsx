@@ -268,10 +268,8 @@ export function SignUpForm({ onDone, onSwitch }: { onDone: (customer: Customer) 
 
   return (
     <form className="auth-form" onSubmit={submit} noValidate>
-      <div className="auth-row">
-        <TextInput id={`${id}-firstName`} label="First name" autoComplete="given-name" placeholder="Ama" value={draft.firstName} onChange={edit("firstName")} error={errors.firstName} />
-        <TextInput id={`${id}-lastName`} label="Last name" autoComplete="family-name" placeholder="Mensah" value={draft.lastName} onChange={edit("lastName")} error={errors.lastName} />
-      </div>
+      <TextInput id={`${id}-firstName`} label="First name" autoComplete="given-name" placeholder="Ama" value={draft.firstName} onChange={edit("firstName")} error={errors.firstName} />
+      <TextInput id={`${id}-lastName`} label="Last name" autoComplete="family-name" placeholder="Mensah" value={draft.lastName} onChange={edit("lastName")} error={errors.lastName} />
       <TextInput
         id={`${id}-email`}
         label="Email"

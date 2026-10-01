@@ -41,7 +41,7 @@
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(180deg, rgba(28, 23, 25, 0.5) 0%, rgba(28, 23, 25, 0.72) 55%, rgba(28, 23, 25, 0.9) 100%);
+  background: linear-gradient(180deg, rgba(36, 36, 38, 0.5) 0%, rgba(36, 36, 38, 0.72) 55%, rgba(36, 36, 38, 0.9) 100%);
 }
 .auth-name { margin-top: 14px; font-size: 17px; font-weight: 500; letter-spacing: -0.01em; }
 .auth-tagline { margin-top: 2px; font-size: 13px; color: rgba(255, 255, 255, 0.75); }
@@ -62,13 +62,10 @@
 .auth-demo-tag {
   position: absolute;
   right: var(--gutter);
-  top: calc(20px + env(safe-area-inset-top, 0px));
-  padding: 3px 10px;
-  border-radius: var(--r-pill);
-  background: var(--magenta);
-  color: var(--ink);
-  font-size: 11px;
-  font-weight: 500;
+  top: calc(24px + env(safe-area-inset-top, 0px));
+  color: var(--magenta);
+  font-size: 13px;
+  font-weight: 600;
   letter-spacing: 0.02em;
 }
 .auth-brand {
@@ -90,6 +87,17 @@
   letter-spacing: -0.02em;
   text-align: center;
 }
+.auth-identity { display: flex; flex-direction: column; align-items: center; }
+.auth-top.is-bar .auth-identity { display: none; }
+/* The bar pages' heading: read out on phones (the bar shows the same words), shown above the form on desktop. */
+.auth-sheet-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 
 /* The light sheet rises over the black with one deep curve, on the left only. */
 .auth-sheet {
@@ -105,11 +113,11 @@
 .auth-head p { max-width: 34ch; color: var(--ink-75); }
 
 .auth-form { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 420px; margin-inline: auto; }
-.auth-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-
 /* Labels sit above the fields; placeholders only add an example. */
 .auth-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .auth-label-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+/* A row with a link is a little taller, so the link's hit area fits above the field without covering it. */
+.auth-label-row:has(.auth-link) { min-height: 24px; align-items: center; }
 .auth-label { font-size: 13px; font-weight: 500; color: var(--ink); }
 .auth-input {
   display: flex;
@@ -169,9 +177,12 @@
   text-decoration-color: var(--ink-25);
 }
 .auth-link:hover { text-decoration-color: var(--ink); }
-.auth-link::after { content: ""; position: absolute; inset: -10px -6px; }
+/* 44px tall hit areas around the 20px text. Next to a field, the area grows upwards instead of into it. */
+.auth-link::after { content: ""; position: absolute; inset: -13px -8px; }
+.auth-label-row .auth-link::after { inset: -17px -8px -8px; }
 
-.auth-check { display: flex; align-items: flex-start; gap: 10px; min-height: 28px; font-size: 14px; cursor: pointer; }
+/* Padding makes the whole row a 44px target; the negative margin keeps it where it was. */
+.auth-check { display: flex; align-items: flex-start; gap: 10px; min-height: 44px; padding-block: 8px; margin-block: -8px; font-size: 14px; cursor: pointer; }
 .auth-check input { flex: none; width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--ink); cursor: pointer; }
 
 .auth-alert {
@@ -254,6 +265,60 @@
   }
   .auth-top { padding-top: 16px; }
   .auth-back { top: 12px; left: 12px; }
-  .auth-demo-tag { top: 22px; }
+  .auth-demo-tag { top: 26px; }
   .auth-sheet { padding: 40px 36px 36px; }
+}
+
+/* Desktop: the photo and brand fill the left of the screen and stay put; the form scrolls on the right,
+   its top corner curving over the photo. */
+@media (min-width: 1024px) {
+  .auth { display: block; padding: 0; }
+  .auth-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(520px, 0.9fr);
+    width: 100%;
+    min-height: 100dvh;
+    overflow: visible;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .auth-top,
+  .auth-top.is-bar {
+    position: sticky;
+    top: 0;
+    height: 100dvh;
+    justify-content: center;
+    padding: 48px 112px 48px 48px;
+  }
+  .auth-top.is-bar .auth-identity { display: flex; }
+  .auth-bar-title { display: none; }
+  .auth-brand { width: 104px; height: 104px; margin-top: 0; border-radius: 30px; }
+  .auth-brand svg { transform: scale(1.35); }
+  .auth-name { margin-top: 22px; font-size: 30px; line-height: 1.2; letter-spacing: -0.03em; }
+  .auth-tagline { margin-top: 8px; font-size: 15px; }
+  .auth-back { top: 24px; left: 24px; }
+  .auth-demo-tag { top: 37px; left: 78px; right: auto; }
+  .auth-sheet {
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100dvh;
+    margin: 0 0 0 -64px;
+    padding: 48px clamp(40px, 6vw, 96px);
+    border-top-left-radius: 64px;
+  }
+  .auth-sheet-title {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+    margin-bottom: 8px;
+    font-size: 28px;
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+    text-align: center;
+  }
 }

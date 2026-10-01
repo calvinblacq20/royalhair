@@ -17,7 +17,7 @@ import { useFirstLoad, useFirstVisit, useNow } from "../hooks";
 import { AdminPage, BranchSwitch, EmptyState } from "../Shell";
 import { usePeriod, useScopedVisits } from "./Today";
 
-export const METHOD_COLOR: Record<PaymentMethod, string> = { momo: "#fc5aa3", cash: "#b7c9b4", bank: "#cfa9c4", card: "#ead9c4" };
+export const METHOD_COLOR: Record<PaymentMethod, string> = { momo: "#fc5aa3", cash: "#b8deff", bank: "#c0adff", card: "#e0c5b6" };
 const KIND = { deposit: "Deposit", part: "Part", final: "Final" } as const;
 const PAGE_SIZE = 20;
 

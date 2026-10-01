@@ -68,7 +68,7 @@ body:has(.adm) { background: var(--ground); }
 .adm-nav-hl { position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: var(--magenta); }
 .adm-nav-item svg { flex: none; }
 .adm-nav-count { margin-left: auto; }
-.adm-nav-item.is-active .chip-count { background: var(--surface); }
+.adm-nav-item.is-active .chip-count { color: var(--ink); }
 .adm-side-foot { margin-top: auto; padding-top: 12px; display: flex; flex-direction: column; gap: 4px; }
 .adm-side-foot .divider { margin: 4px 8px 8px; }
 .adm-owner { display: flex; align-items: center; gap: 10px; padding: 6px 8px; }
@@ -188,18 +188,15 @@ body:has(.adm) { background: var(--ground); }
 .adm-bell { position: relative; }
 .adm-bell-dot {
   position: absolute;
-  top: 6px;
-  right: 6px;
-  min-width: 16px;
-  height: 16px;
-  padding-inline: 4px;
-  border-radius: var(--r-pill);
-  background: var(--magenta);
-  color: var(--ink);
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 16px;
-  text-align: center;
+  top: 3px;
+  right: 2px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--label-magenta);
+  font-variant-numeric: tabular-nums;
+  /* A halo in the page colour keeps the number clear of the bell's outline. */
+  text-shadow: 0 0 2px var(--ground), 0 0 4px var(--ground), 0 0 6px var(--ground);
 }
 
 /* ---------- Page ---------- */
@@ -297,7 +294,7 @@ body:has(.adm) { background: var(--ground); }
 .dd-btn:hover { box-shadow: var(--sh-float); }
 .dd-btn:focus-visible { border-radius: var(--r-pill); outline-offset: 3px; }
 .dd-btn.is-soft { height: 34px; padding: 0 10px 0 14px; background: var(--ground); box-shadow: none; font-size: 13px; }
-.dd-btn.is-soft:hover { background: #e9e9eb; }
+.dd-btn.is-soft:hover { background: #e3e8ef; }
 .dd-btn.is-field {
   width: 100%;
   min-height: 44px;
@@ -407,19 +404,15 @@ body:has(.adm) { background: var(--ground); }
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  height: 22px;
-  padding: 0 8px 0 6px;
-  border-radius: var(--r-pill);
-  background: var(--ground);
-  color: var(--ink);
-  font-size: 12px;
-  font-weight: 500;
+  color: var(--ink-75);
+  font-size: 13px;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.delta.is-good { background: var(--magenta); }
-.delta.is-bad { background: var(--champagne); }
-.kpi-tab.is-active .delta.is-neutral { background: var(--surface); }
+.delta.is-good { color: var(--label-magenta); }
+.delta.is-bad { color: var(--label-champagne); }
+.kpi-tab.is-active .delta.is-neutral { color: var(--ink-75); }
 
 /* ---------- Charts ---------- */
 .chart { position: relative; width: 100%; outline: none; }
@@ -489,7 +482,7 @@ body:has(.adm) { background: var(--ground); }
 .rank .idx { width: 28px; color: var(--ink-75); }
 .rank .bar { width: 72px; padding-left: 12px; }
 .mini-bar { display: block; height: 6px; border-radius: 3px; background: var(--ground); overflow: hidden; }
-.mini-bar i { display: block; height: 100%; border-radius: 3px; background: var(--plum); }
+.mini-bar i { display: block; height: 100%; border-radius: 3px; background: var(--slate); }
 .rank tbody tr { transition: background-color 0.15s; }
 .rank a { color: var(--ink); }
 .rank a:hover { text-decoration: underline; text-underline-offset: 3px; }
@@ -649,7 +642,7 @@ a.adm-row:hover, button.adm-row:hover { background: var(--ground); }
 .res-sub a { color: var(--ink); }
 .res-sub a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .res-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 6px; font-size: 13px; color: var(--ink-75); }
-.res-meta .badge { height: 24px; font-size: 12px; padding: 0 10px; }
+.res-meta .badge { font-size: 12px; }
 .res-meta .badge-well { display: none; }
 /* Badges without an icon drop the empty circle. */
 .adm .badge-well:empty { display: none; }
@@ -660,9 +653,9 @@ a.adm-row:hover, button.adm-row:hover { background: var(--ground); }
 .res-action { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 4px; font-weight: 500; font-size: 14px; }
 .res-action:hover { text-decoration: underline; text-underline-offset: 3px; }
 .res-menu { position: relative; z-index: 1; margin-left: auto; margin-top: -6px; margin-right: -8px; }
-.money-tag { display: inline-flex; align-items: center; height: 24px; padding-inline: 10px; border-radius: var(--r-pill); background: var(--ground); font-size: 12px; font-weight: 500; color: var(--ink); font-variant-numeric: tabular-nums; }
-.money-tag.is-paid { background: var(--magenta); }
-.money-tag.is-owed { background: var(--champagne); }
+.money-tag { display: inline-flex; align-items: center; font-size: 13px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.money-tag.is-paid { color: var(--label-magenta); }
+.money-tag.is-owed { color: var(--label-champagne); }
 @media (max-width: 809.98px) {
   .res-card { padding: 16px; grid-template-columns: 40px minmax(0, 1fr); }
   .res-thumb, .res-thumb .photo { width: 40px; height: 40px; }
@@ -731,7 +724,7 @@ a.adm-row:hover, button.adm-row:hover { background: var(--ground); }
   resize: vertical;
   outline: none;
 }
-.adm-textarea:focus { background: #e9e9eb; }
+.adm-textarea:focus { background: #e3e8ef; }
 .msg-preview { white-space: pre-wrap; padding: 14px 16px; border-radius: var(--r-12) var(--r-12) var(--r-12) 2px; background: var(--magenta-wash); font-size: 14px; line-height: 1.5; }
 .adm-input {
   width: 100%;
@@ -744,14 +737,14 @@ a.adm-row:hover, button.adm-row:hover { background: var(--ground); }
   font-variant-numeric: tabular-nums;
   outline: none;
 }
-.adm-input:focus { background: #e9e9eb; }
+.adm-input:focus { background: #e3e8ef; }
 .adm-form-error { font-size: 13px; color: var(--danger); }
 
 /* ---------- Mobile tab bar ---------- */
 .adm-tabbar { position: fixed; left: 0; right: 0; bottom: 0; }
 .adm-tabbar .tabbar { grid-template-columns: repeat(5, 1fr); max-width: 520px; margin-inline: auto; }
 /* On the "More" tab the attention badge is a plain dot, not a big pink blob. */
-.adm-tabbar .adm-bell-dot { min-width: 0; width: 9px; height: 9px; padding: 0; top: -2px !important; right: -4px !important; box-shadow: 0 0 0 2px var(--glass); }
+.adm-tabbar .adm-bell-dot { min-width: 0; width: 9px; height: 9px; padding: 0; top: -2px !important; right: -4px !important; box-shadow: 0 0 0 2px var(--glass); border-radius: 50%; background: var(--magenta); font-size: 0; overflow: hidden; text-shadow: none; }
 .adm-tab-plus { display: grid; place-items: center; }
 .adm-tabbar .adm-bell-dot { min-width: 8px; width: 8px; height: 8px; padding: 0; }
 .adm-tab-plus span { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: var(--ink); color: var(--magenta); box-shadow: var(--sh-float); }

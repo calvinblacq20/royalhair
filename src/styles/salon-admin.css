@@ -66,7 +66,7 @@ textarea.has-allergy { color: var(--danger); }
   transition: background-color 0.15s;
 }
 .diary-slot:hover:not(:disabled) { background: var(--magenta-wash); }
-.diary-slot:disabled { cursor: default; background: repeating-linear-gradient(135deg, transparent 0 6px, rgba(28, 23, 25, 0.025) 6px 12px); }
+.diary-slot:disabled { cursor: default; background: repeating-linear-gradient(135deg, transparent 0 6px, rgba(36, 36, 38, 0.025) 6px 12px); }
 .diary-visit {
   position: absolute;
   left: 4px;
@@ -88,8 +88,8 @@ textarea.has-allergy { color: var(--danger); }
 .diary-visit-name { font-size: 13px; font-weight: 500; }
 .diary-visit-meta { font-size: 11px; color: var(--ink-75); }
 .diary-visit.is-magenta { border-left-color: var(--magenta-deep); background: var(--magenta-wash); }
-.diary-visit.is-sage { border-left-color: var(--open); background: #eef4ed; }
-.diary-visit.is-plum { border-left-color: var(--plum); background: #f3e9f0; }
+.diary-visit.is-sage { border-left-color: var(--open); background: #e7ecf3; }
+.diary-visit.is-plum { border-left-color: var(--plum); background: #eef1f6; }
 .diary-visit.is-gold { border-left-color: var(--gold); background: var(--gold-wash); }
 .diary-visit.is-mist { border-left-color: var(--ink-25); opacity: 0.8; }
 .diary-now { position: absolute; left: 0; right: 0; z-index: 2; height: 2px; background: var(--danger); pointer-events: none; }
@@ -121,6 +121,10 @@ textarea.has-allergy { color: var(--danger); }
 }
 .week-days > .is-on { background: var(--ink); color: #fff; }
 .week-days.is-editable > * { width: 40px; height: 40px; font-size: 14px; }
+/* In the staff list the days are letters, not circles: working days in ink, days off faded. The editor keeps its round toggles. */
+.week-days:not(.is-editable) { gap: 6px; }
+.week-days:not(.is-editable) > * { width: 14px; height: auto; background: none; color: var(--ink-25); font-weight: 500; }
+.week-days:not(.is-editable) > .is-on { background: none; color: var(--ink); font-weight: 700; }
 .adm-table .week-days { flex-wrap: nowrap; gap: 3px; }
 .adm-table .week-days > * { width: 22px; height: 22px; font-size: 11px; }
 

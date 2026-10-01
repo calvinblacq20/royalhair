@@ -25,7 +25,7 @@ import { AdminPage, BranchSwitch, EmptyState } from "../Shell";
 import { visitTitle } from "../visitCard";
 
 const TODAY_METRICS: MetricId[] = ["cash", "visits", "noShows", "avgSpend"];
-export const INK = "#1c1719";
+export const INK = "#242426";
 export const PREVIOUS = "rgba(28,23,25,0.5)";
 
 /** The day's stages, in the order a client moves through them. */
@@ -247,7 +247,7 @@ export function Today() {
                   </Link>
                   <Link to="/admin/diary" className="kv">
                     <span>Past their start time</span>
-                    <b style={late.length ? { color: "var(--gold)" } : undefined}>{late.length}</b>
+                    <b style={late.length ? { color: "var(--warning-ink)" } : undefined}>{late.length}</b>
                   </Link>
                   <div className="kv">
                     <span>Balance to collect today</span>
