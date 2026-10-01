@@ -89,10 +89,10 @@
  */
 :root {
   --label-magenta: var(--magenta-deep);
-  --label-gold: #806818;
-  --label-sage: #3a7a2e;
-  --label-plum: var(--plum);
-  --label-mist: #7a6668;
+  --label-gold: var(--warning-ink);
+  --label-sage: #1a63a8;
+  --label-plum: #5a3ec8;
+  --label-mist: #6b6470;
   --label-champagne: var(--warning-ink);
-  --label-danger: var(--danger);
+  --label-danger: #b83a26;
 }

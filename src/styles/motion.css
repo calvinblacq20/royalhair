@@ -187,10 +187,14 @@
   align-items: center;
   gap: 7px;
   color: var(--ink);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
   white-space: nowrap;
   will-change: transform, opacity;
+}
+/* Small phones: a size down so the longer words don't run into each other. */
+@media (max-width: 359.98px) {
+  .tumble-chip { gap: 5px; font-size: 13px; }
 }
 
 .group-strip { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: auto; }

@@ -247,7 +247,7 @@ export function Today() {
                   </Link>
                   <Link to="/admin/diary" className="kv">
                     <span>Past their start time</span>
-                    <b style={late.length ? { color: "var(--warning-ink)" } : undefined}>{late.length}</b>
+                    <b style={late.length ? { color: "var(--champagne)" } : undefined}>{late.length}</b>
                   </Link>
                   <div className="kv">
                     <span>Balance to collect today</span>

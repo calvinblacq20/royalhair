@@ -258,10 +258,10 @@ button.row:active, a.row:active { background: var(--ink-06); }
   --label-magenta: var(--magenta);
   --label-gold: var(--gold);
   --label-sage: var(--sage);
-  --label-plum: #e3a3d0;
+  --label-plum: var(--plum);
   --label-mist: var(--mist);
   --label-champagne: var(--champagne);
-  --label-danger: #ff9a8f;
+  --label-danger: #ff9a87;
 }
 
 /* ---------- Skeleton ---------- */
